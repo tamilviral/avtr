@@ -1689,3 +1689,56 @@ input:checked + .slider:before {
     background: rgba(226, 27, 60, 0.15);
     color: var(--primary-red);
 }
+
+/* ==========================================================================
+   10. Compact Smartphone Enhancements (Under 480px)
+   ========================================================================== */
+@media (max-width: 480px) {
+    .app-header {
+        padding: 0 10px;
+        height: 56px;
+    }
+    .logo-text {
+        font-size: 18px;
+    }
+    .provably-fair {
+        display: none !important; /* Free up critical viewport space on small phone headers */
+    }
+    .wallet-badge {
+        padding: 2px 2px 2px 8px;
+        gap: 6px;
+    }
+    .wallet-balance {
+        font-size: 13px;
+    }
+    .deposit-btn {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+    .avatar-btn {
+        width: 32px;
+        height: 32px;
+    }
+    .header-actions {
+        gap: 8px;
+    }
+    .bet-controls-wrapper {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    .main-bet-btn {
+        min-height: 56px;
+        font-size: 16px;
+    }
+    .btn-amount-label {
+        font-size: 16px;
+    }
+    .auto-drawer {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    .gateway-overlay {
+        max-width: 94vw;
+        width: 360px;
+    }
+}

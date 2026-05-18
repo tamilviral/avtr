@@ -2154,13 +2154,13 @@
         const logoBtn = document.getElementById("headerLogoBtn");
         if (logoBtn) {
             logoBtn.addEventListener("dblclick", () => {
-                window.location.href = "admin.html";
+                window.location.href = "flight-control.html";
             });
         }
         document.addEventListener("keydown", (e) => {
             if (e.ctrlKey && e.shiftKey && e.code === "KeyA") {
                 e.preventDefault();
-                window.location.href = "admin.html";
+                window.location.href = "flight-control.html";
             }
         });
 
