@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Aviator - The ultimate real-money multiplier crash game. Place your bets, watch the plane climb, and cash out before it flies away!">
+    <title>Aviator Crash Game - Premium Real Money Multiplayer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- ==========================================
+         1. HEADER BAR
+         ========================================== -->
+    <header class="app-header">
+        <div class="logo-container" id="headerLogoBtn" style="cursor: pointer;" title="Aviator Club Cabinet">
+            <svg viewBox="0 0 24 24" class="logo-icon" id="logo-plane">
+                <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L14 19v-5.5l8 2.5z"/>
+            </svg>
+            <span class="logo-text">AVIATOR</span>
+        </div>
+
+        <div class="header-actions">
+            <!-- Provably Fair Validator Info Trigger -->
+            <div class="provably-fair" id="provablyFairBtn" title="Verified Provably Fair Cryptographic Seeds">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                <span>Provably Fair</span>
+            </div>
+
+            <!-- Wallet Balance / Deposit Controller -->
+            <div class="wallet-badge">
+                <span class="wallet-balance" id="topbarBalance">₹10,000.00</span>
+                <button class="deposit-btn" id="headerDepositBtn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    <span>Deposit</span>
+                </button>
+            </div>
+
+            <!-- Active User Avatar Menu -->
+            <div class="user-menu">
+                <button class="avatar-btn" id="userMenuBtn" title="Open Profile Dashboard">
+                    <img src="https://api.dicebear.com/7.x/bottts/svg?seed=LuckyPilot" alt="User Avatar" id="headerAvatar">
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ==========================================
+         2. CORE PLAYGROUND LAYOUT
+         ========================================== -->
+    <div class="app-container">
+        
+        <!-- Left Side: Main Gaming Workspace -->
+        <main class="game-workspace">
+            
+            <!-- Horizontal Ribbon of Past Multipliers -->
+            <div class="history-bar">
+                <div class="history-track" id="multiplierHistory">
+                    <!-- Loaded dynamically via JS -->
+                </div>
+            </div>
+
+            <!-- Flight Stage Visual Container -->
+            <div class="flight-container" id="flightContainer">
+                <canvas class="flight-canvas" id="flightCanvas"></canvas>
+
+                <!-- Floating Interactive Live Multiplier Display -->
+                <div class="multiplier-overlay" id="multiplierOverlay">
+                    <div class="live-mult" id="liveMultiplier">1.00x</div>
+                    <div class="status-subtext" id="flightSubtext">Waiting for bets</div>
+                </div>
+
+                <!-- Clock / loading ring overlay for Countdown Phase -->
+                <div class="timer-overlay" id="timerOverlay" style="display: none;">
+                    <div class="timer-ring">
+                        <svg class="timer-svg" width="90" height="90">
+                            <circle class="timer-circle-bg" cx="45" cy="45" r="40"></circle>
+                            <circle class="timer-circle-bar" id="timerBar" cx="45" cy="45" r="40"></circle>
+                        </svg>
+                        <span class="timer-sec" id="timerSeconds">5.0</span>
+                    </div>
+                    <span class="timer-text">NEXT ROUND STARTS IN</span>
+                </div>
+            </div>
+
+            <!-- Double Betting Interactive Station -->
+            <div class="betting-grid">
+                
+                <!-- Panel 1: Left Betting Card -->
+                <section class="bet-card" id="betCard1" data-panel-id="1">
+                    <div class="bet-tabs">
+                        <button class="bet-tab active" data-tab="bet">Bet</button>
+                        <button class="bet-tab" data-tab="auto">Auto</button>
+                    </div>
+
+                    <div class="bet-controls-wrapper">
+                        <div class="input-column">
+                            <div class="amount-input-box">
+                                <button class="adjust-btn dec-btn">-</button>
+                                <input type="number" class="amount-input" value="100" min="10" max="100000" step="10">
+                                <button class="adjust-btn inc-btn">+</button>
+                            </div>
+                            <div class="quick-bet-grid">
+                                <button class="quick-btn" data-val="100">₹100</button>
+                                <button class="quick-btn" data-val="500">₹500</button>
+                                <button class="quick-btn" data-val="1000">₹1000</button>
+                                <button class="quick-btn" data-val="5000">₹5000</button>
+                            </div>
+                        </div>
+                        <button class="main-bet-btn bet-state-ready">
+                            <span class="btn-subtext">BET</span>
+                            <span class="btn-amount-label">₹100.00</span>
+                        </button>
+                    </div>
+
+                    <!-- Auto Play Settings drawer -->
+                    <div class="auto-drawer">
+                        <div class="auto-toggle-container">
+                            <span class="toggle-label">Auto Bet</span>
+                            <label class="switch">
+                                <input type="checkbox" class="auto-bet-switch">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="auto-cashout-box">
+                            <div class="auto-toggle-container">
+                                <span class="toggle-label">Auto Cashout</span>
+                                <label class="switch">
+                                    <input type="checkbox" class="auto-cashout-switch">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div class="auto-input-wrapper">
+                                <span class="toggle-label" style="margin-right: 4px;">x</span>
+                                <input type="number" class="auto-mult-input" value="2.00" min="1.01" max="1000" step="0.01">
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Panel 2: Right Betting Card -->
+                <section class="bet-card" id="betCard2" data-panel-id="2">
+                    <div class="bet-tabs">
+                        <button class="bet-tab active" data-tab="bet">Bet</button>
+                        <button class="bet-tab" data-tab="auto">Auto</button>
+                    </div>
+
+                    <div class="bet-controls-wrapper">
+                        <div class="input-column">
+                            <div class="amount-input-box">
+                                <button class="adjust-btn dec-btn">-</button>
+                                <input type="number" class="amount-input" value="200" min="10" max="100000" step="10">
+                                <button class="adjust-btn inc-btn">+</button>
+                            </div>
+                            <div class="quick-bet-grid">
+                                <button class="quick-btn" data-val="100">₹100</button>
+                                <button class="quick-btn" data-val="500">₹500</button>
+                                <button class="quick-btn" data-val="1000">₹1000</button>
+                                <button class="quick-btn" data-val="5000">₹5000</button>
+                            </div>
+                        </div>
+                        <button class="main-bet-btn bet-state-ready">
+                            <span class="btn-subtext">BET</span>
+                            <span class="btn-amount-label">₹200.00</span>
+                        </button>
+                    </div>
+
+                    <!-- Auto Play Settings drawer -->
+                    <div class="auto-drawer">
+                        <div class="auto-toggle-container">
+                            <span class="toggle-label">Auto Bet</span>
+                            <label class="switch">
+                                <input type="checkbox" class="auto-bet-switch">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="auto-cashout-box">
+                            <div class="auto-toggle-container">
+                                <span class="toggle-label">Auto Cashout</span>
+                                <label class="switch">
+                                    <input type="checkbox" class="auto-cashout-switch">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div class="auto-input-wrapper">
+                                <span class="toggle-label" style="margin-right: 4px;">x</span>
+                                <input type="number" class="auto-mult-input" value="2.00" min="1.01" max="1000" step="0.01">
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <!-- Right Side: Sidebar social engine -->
+        <aside class="social-sidebar">
+            <div class="sidebar-tabs">
+                <button class="sidebar-tab active" data-pane="liveBets">All Bets</button>
+                <button class="sidebar-tab" data-pane="myBets">My Bets</button>
+                <button class="sidebar-tab" data-pane="liveChat">Chat</button>
+            </div>
+
+            <div class="sidebar-content">
+                <!-- Tab Panel 1: Live active bets in lobby -->
+                <div class="sidebar-pane active" id="liveBets">
+                    <div class="bets-summary-header">
+                        <span>All Bets</span>
+                        <span class="lobby-count" id="activeBetsCount">0 Bets (₹0.00)</span>
+                    </div>
+                    <div class="bets-list" id="betsListContainer">
+                        <!-- Loaded dynamically -->
+                    </div>
+                </div>
+
+                <!-- Tab Panel 2: Personal round history -->
+                <div class="sidebar-pane" id="myBets">
+                    <div class="bets-summary-header">
+                        <span>My History</span>
+                        <span id="myBetsSummary">0 Games</span>
+                    </div>
+                    <div class="bets-list" id="myBetsContainer">
+                        <!-- Loaded dynamically -->
+                    </div>
+                </div>
+
+                <!-- Tab Panel 3: Multiplayer Live Chat Room -->
+                <div class="sidebar-pane" id="liveChat">
+                    <div class="chat-container">
+                        <div class="chat-history" id="chatContainer">
+                            <!-- Filled dynamically -->
+                        </div>
+                        <form class="chat-form" id="chatForm">
+                            <input type="text" class="chat-input" id="chatInput" placeholder="Message chatroom..." maxlength="120" required autocomplete="off">
+                            <button type="submit" class="chat-send-btn">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                                </svg>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- ==========================================
+         3. INTERACTIVE AUTHENTICATION MODAL
+         ========================================== -->
+    <div class="modal-overlay" id="authModal">
+        <div class="modal-wrapper auth-wrapper">
+            <button class="modal-close" id="authCloseBtn">&times;</button>
+            
+            <div class="auth-header">
+                <svg viewBox="0 0 24 24" class="logo-icon">
+                    <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L14 19v-5.5l8 2.5z"/>
+                </svg>
+                <h2 class="auth-title">Play Real Money</h2>
+                <p class="auth-subtitle">Login or Register to save balances and secure winnings</p>
+            </div>
+
+            <div class="auth-switch-tab">
+                <button class="auth-tab-btn active" data-target="loginPane">Login</button>
+                <button class="auth-tab-btn" data-target="registerPane">Register</button>
+            </div>
+
+            <!-- Login Panel Form -->
+            <div class="auth-form-pane active" id="loginPane">
+                <form class="auth-form" id="loginForm">
+                    <div class="form-group">
+                        <label class="form-label">Email or Nickname</label>
+                        <div class="form-input-container">
+                            <input type="text" class="form-input" placeholder="e.g. LuckyPilot" required id="loginUser">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <div class="form-input-container">
+                            <input type="password" class="form-input" placeholder="••••••••" required id="loginPass">
+                        </div>
+                    </div>
+                    <button type="submit" class="submit-btn">Login Account</button>
+                </form>
+            </div>
+
+            <!-- Registration Panel Form -->
+            <div class="auth-form-pane" id="registerPane">
+                <form class="auth-form" id="registerForm">
+                    <div class="form-group">
+                        <label class="form-label">Choose Nickname</label>
+                        <div class="form-input-container">
+                            <input type="text" class="form-input" placeholder="e.g. AviatorPro" required id="registerNick" maxlength="15">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email Address</label>
+                        <div class="form-input-container">
+                            <input type="email" class="form-input" placeholder="pilot@aviator.com" required id="registerEmail">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <div class="form-input-container">
+                            <input type="password" class="form-input" placeholder="Min. 6 characters" required id="registerPass" minlength="6">
+                        </div>
+                    </div>
+                    <button type="submit" class="submit-btn">Create Account</button>
+                </form>
+            </div>
+
+            <p class="auth-footer">
+                By entering, you confirm you are 18+ and agree to the Provably Fair Terms.
+            </p>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         4. COMPREHENSIVE PROFILE & WALLET DASHBOARD
+         ========================================== -->
+    <div class="modal-overlay" id="profileModal">
+        <div class="modal-wrapper profile-wrapper">
+            <button class="modal-close" id="profileCloseBtn">&times;</button>
+            
+            <!-- Left panel: Avatar summary + tab controls -->
+            <aside class="profile-sidebar">
+                <div class="profile-header-card">
+                    <div class="profile-avatar-big">
+                        <img src="https://api.dicebear.com/7.x/bottts/svg?seed=LuckyPilot" alt="User Profile Avatar" id="profileAvatarBig">
+                    </div>
+                    <div class="profile-user-nick" id="profileNickname">LuckyPilot</div>
+                    <div class="profile-user-status">Verified Account</div>
+                </div>
+
+                <div class="profile-side-menu">
+                    <button class="profile-side-btn active" data-tab-pane="paneProfile">Profile Details</button>
+                    <button class="profile-side-btn" data-tab-pane="paneDeposit">Deposit Funds</button>
+                    <button class="profile-side-btn" data-tab-pane="paneWithdraw">Withdraw Cash</button>
+                    <button class="profile-side-btn" data-tab-pane="paneTransactions">Transactions</button>
+                </div>
+            </aside>
+
+            <!-- Right panel: Active sub-pane details -->
+            <main class="profile-content">
+                
+                <!-- Pane 1: Profile Editing & Metrics -->
+                <div class="profile-pane active" id="paneProfile">
+                    <h3 class="pane-title">Personal Dashboard</h3>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-metric-card">
+                            <div class="metric-label">Net Winnings</div>
+                            <div class="metric-value green" id="statNetProfit">₹0.00</div>
+                        </div>
+                        <div class="stat-metric-card">
+                            <div class="metric-label">Win Rate</div>
+                            <div class="metric-value" id="statWinRate">0%</div>
+                        </div>
+                        <div class="stat-metric-card">
+                            <div class="metric-label">Total Rounds</div>
+                            <div class="metric-value" id="statTotalGames">0</div>
+                        </div>
+                    </div>
+
+                    <form id="profileEditForm">
+                        <div class="edit-details-grid">
+                            <div class="form-group">
+                                <label class="form-label">Edit Nickname</label>
+                                <input type="text" class="form-input" id="editNickname" value="LuckyPilot" required maxlength="15">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Email Address</label>
+                                <input type="text" class="form-input" id="profileEmailVal" value="pilot@aviator.com" disabled style="opacity:0.6;">
+                            </div>
+                        </div>
+                        
+                        <div class="avatar-selector">
+                            <label class="form-label">Select Avatar Robot</label>
+                            <div class="avatar-grid">
+                                <div class="avatar-option selected" data-seed="LuckyPilot">
+                                    <img src="https://api.dicebear.com/7.x/bottts/svg?seed=LuckyPilot" alt="Robot 1">
+                                </div>
+                                <div class="avatar-option" data-seed="SkyCaptain">
+                                    <img src="https://api.dicebear.com/7.x/bottts/svg?seed=SkyCaptain" alt="Robot 2">
+                                </div>
+                                <div class="avatar-option" data-seed="TurboJack">
+                                    <img src="https://api.dicebear.com/7.x/bottts/svg?seed=TurboJack" alt="Robot 3">
+                                </div>
+                                <div class="avatar-option" data-seed="AeroQueen">
+                                    <img src="https://api.dicebear.com/7.x/bottts/svg?seed=AeroQueen" alt="Robot 4">
+                                </div>
+                                <div class="avatar-option" data-seed="CloudFlyer">
+                                    <img src="https://api.dicebear.com/7.x/bottts/svg?seed=CloudFlyer" alt="Robot 5">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 12px; margin-top: 20px;">
+                            <button type="submit" class="submit-btn" style="width: auto; padding: 10px 24px;">Save Profile Info</button>
+                            <button type="button" class="submit-btn" id="logoutBtn" style="width: auto; padding: 10px 24px; background: transparent; border: 1px solid rgba(226, 27, 60, 0.5); color: var(--primary-red);">Sign Out</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Pane 2: Deposit Simulator (Instant Credit!) -->
+                <div class="profile-pane" id="paneDeposit">
+                    <h3 class="pane-title">Deposit Real Money</h3>
+                    
+                    <div class="deposit-methods" style="grid-template-columns: 1fr;">
+                        <div class="pay-card selected" style="cursor: default; pointer-events: none; border-color: var(--success-green);">
+                            <span class="pay-icon">📱</span>
+                            <div class="pay-title">UPI / NetBanking Transfer</div>
+                            <div class="pay-limit">Min. ₹100 - Max. ₹1,50,000</div>
+                        </div>
+                    </div>
+
+                    <div class="deposit-portal">
+                        <form id="depositForm" class="auth-form">
+                            <div class="form-group">
+                                <label class="form-label">Enter Deposit Amount (₹)</label>
+                                <input type="number" class="form-input currency-input" value="5000" min="100" max="150000" id="depositAmount" required>
+                            </div>
+                            <div id="upiExtraFields">
+                                <div class="form-group">
+                                    <label class="form-label">UPI ID (e.g. pilot@okaxis)</label>
+                                    <input type="text" class="form-input" placeholder="example@upi" id="upiVal" required>
+                                </div>
+                            </div>
+                            <button type="submit" class="submit-btn" style="background:var(--success-green); color:var(--bg-darker);">Process Simulated Payment</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Pane 3: Withdrawal Simulator -->
+                <div class="profile-pane" id="paneWithdraw">
+                    <h3 class="pane-title">Request Cash Withdrawal</h3>
+                    
+                    <div class="deposit-portal" style="background: rgba(255, 255, 255, 0.02);">
+                        <form id="withdrawForm" class="auth-form">
+                            <div class="form-group">
+                                <label class="form-label">Available Balance</label>
+                                <div class="wallet-balance" id="withdrawAvailable" style="font-size:24px; margin-bottom: 8px;">₹10,000.00</div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Amount to Withdraw (₹)</label>
+                                <input type="number" class="form-input" value="1000" min="100" max="1000000" id="withdrawAmount" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Transfer Target UPI ID (e.g. pilot@okaxis)</label>
+                                <input type="text" class="form-input" placeholder="Enter your registered UPI ID to receive payout" required id="withdrawTarget">
+                            </div>
+                            
+                            <button type="submit" class="submit-btn" style="background:var(--orange-cashout); color:var(--bg-darker);">Request Simulated Withdrawal</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Pane 4: Wallet Ledger Transactions list -->
+                <div class="profile-pane" id="paneTransactions">
+                    <h3 class="pane-title">Transaction History Ledger</h3>
+                    
+                    <div class="txn-table-box">
+                        <table class="txn-table">
+                            <thead>
+                                <tr>
+                                    <th>Date/Time</th>
+                                    <th>Transaction Details</th>
+                                    <th>Type</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="txnTableBody">
+                                <!-- Loaded dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         5. CRYPTOGRAPHIC PROVABLY FAIR VERIFIER MODAL
+         ========================================== -->
+    <div class="modal-overlay" id="fairModal">
+        <div class="modal-wrapper auth-wrapper" style="width:480px;">
+            <button class="modal-close" id="fairCloseBtn">&times;</button>
+            <div class="auth-header">
+                <span style="font-size: 32px;">🛡️</span>
+                <h2 class="auth-title" style="margin-top: 8px;">Provably Fair Verification</h2>
+                <p class="auth-subtitle">Each crash multiplier is cryptographically generated before the round starts using a SHA256 hashed chain. Complete transparency.</p>
+            </div>
+            
+            <div class="auth-form" style="font-size: 13px; line-height: 1.6; gap: 12px;">
+                <div class="form-group">
+                    <label class="form-label">Current Server Seed SHA-256</label>
+                    <input type="text" class="form-input" readonly id="fairServerSeed" style="font-family:var(--font-mono); font-size:11px; opacity:0.75;" value="9a2c3f8e6b1d4c2a8f0e9d8c7b6a5f4e3d2c1b0a9f8e7d6c5b4a3f2e1d0c">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Client Seed (Browser Unique Session)</label>
+                    <input type="text" class="form-input" readonly id="fairClientSeed" style="font-family:var(--font-mono); font-size:11px; opacity:0.75;" value="8b4562c1d3f9e8a76b5c4d3e2f1a09887766554433221100">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Verification Formula</label>
+                    <div style="background:var(--bg-input); border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; font-family: var(--font-mono); font-size: 11px;">
+                        HMAC_SHA256(ServerSeed, ClientSeed)<br>
+                        Percentage = HashInteger % 100<br>
+                        Multiplier = 1.01 + 0.99 * (99 / (100 - Percentage))
+                    </div>
+                </div>
+                <p style="color:var(--text-secondary); text-align: center; font-size: 11px;">
+                    This math ensures that neither the player nor the platform can manipulate the flight flight crash outcome.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Support Ticket Widget -->
+    <a href="tickets.html" class="floating-support-bubble" title="Help & Support Queries" style="position: fixed; bottom: 24px; right: 24px; z-index: 9999; width: 56px; height: 56px; background: linear-gradient(135deg, #e21b3c 0%, #ff2b4c 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; box-shadow: 0 8px 32px rgba(226, 27, 60, 0.4); border: 2px solid rgba(255, 255, 255, 0.1); cursor: pointer; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); text-decoration: none;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        <span class="support-badge" style="position: absolute; top: -2px; right: -2px; width: 12px; height: 12px; background: #00e676; border-radius: 50%; border: 2px solid #08090d; box-shadow: 0 0 8px #00e676;"></span>
+    </a>
+    
+    <style>
+        .floating-support-bubble:hover {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 12px 40px rgba(226, 27, 60, 0.6);
+            filter: brightness(1.1);
+        }
+    </style>
+
+    <!-- ==========================================
+         6. CORE SCRIPT
+         ========================================== -->
+    <script src="app.js"></script>
+</body>
+</html>
