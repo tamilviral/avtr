@@ -380,12 +380,26 @@
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
             
+            let iconSVG = '';
+            if (type === 'success') {
+                iconSVG = `<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`;
+            } else if (type === 'error') {
+                iconSVG = `<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`;
+            } else if (type === 'warning') {
+                iconSVG = `<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`;
+            } else {
+                iconSVG = `<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
+            }
+
             toast.innerHTML = `
-                <div class="toast-header">
-                    <span>${title}</span>
-                    <span style="cursor:pointer; opacity:0.6" onclick="this.closest('.toast').remove()">×</span>
+                <div class="toast-icon-wrapper">
+                    ${iconSVG}
                 </div>
-                <div class="toast-body">${body}</div>
+                <div class="toast-content-wrapper">
+                    <div class="toast-header">${title}</div>
+                    <div class="toast-body">${body}</div>
+                </div>
+                <span class="toast-close-btn" onclick="const t = this.closest('.toast'); t.style.animation = 'toast-fluid-out 0.25s ease-in forwards'; setTimeout(() => t.remove(), 250);">&times;</span>
                 <div class="toast-timer"></div>
             `;
             
@@ -396,8 +410,12 @@
             setTimeout(() => timer.style.transform = 'scaleX(0)', 50);
             
             setTimeout(() => {
-                toast.style.animation = 'toast-spring-in 0.3s ease-in reverse';
-                setTimeout(() => toast.remove(), 300);
+                if (toast.parentNode) {
+                    toast.style.animation = 'toast-fluid-out 0.3s cubic-bezier(0.25, 1, 0.5, 1) forwards';
+                    setTimeout(() => {
+                        if (toast.parentNode) toast.remove();
+                    }, 300);
+                }
             }, 3000);
         }
 
