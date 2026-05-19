@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Aviator Cockpit - Real-Money Crash Game</title>
+    <!-- Real-time Cloud DB Syncer -->
+    <script src="db-sync.js"></script>
     
     <!-- Design System Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -203,6 +205,16 @@
                     <div class="side-tab" data-target="myBetsPane">My Bets</div>
                     <div class="side-tab" data-target="historyPane">History</div>
                     <div class="side-tab" data-target="chatPane">Chat</div>
+                </div>
+
+                <!-- Dropdown selector for mobile / responsive screen panes -->
+                <div class="side-tab-dropdown-container" style="padding: 10px; border-bottom: 1px solid var(--border-color); display: none;">
+                    <select id="sidePaneSelector" class="input-field" style="height: 38px; padding: 4px 10px; font-weight: 700; background: rgba(0, 0, 0, 0.4); border: 1px solid var(--border-color); color: #ffffff; border-radius: 8px; width: 100%; font-size: 13px;" onchange="switchSidePaneFromDropdown(this.value)">
+                        <option value="allBetsPane">✈️ All Bets Lobby</option>
+                        <option value="myBetsPane">👤 My Bets History</option>
+                        <option value="historyPane">📊 Flight Rounds History</option>
+                        <option value="chatPane">💬 Live Chat Lobby</option>
+                    </select>
                 </div>
 
                 <div class="side-content">

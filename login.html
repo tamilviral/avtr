@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Pilot Authorization Gateway - Aviator</title>
+    <!-- Real-time Cloud DB Syncer -->
+    <script src="db-sync.js"></script>
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -433,17 +435,34 @@
     <script>
         // Init Database pre-seeds
         function preseedDb() {
-            if (!localStorage.getItem('aviator_db_users')) {
-                const defaultUser = {
+            let users = JSON.parse(localStorage.getItem('aviator_db_users')) || [];
+            
+            // Ensure default pilot exists
+            if (!users.some(u => u.email.toLowerCase() === 'pilot@aviator.com')) {
+                users.push({
                     email: "pilot@aviator.com",
                     phone: "9952254507",
                     password: "password123",
                     balance: 500.00,
                     joinDate: new Date().toLocaleString(),
                     status: "active"
-                };
-                localStorage.setItem('aviator_db_users', JSON.stringify([defaultUser]));
+                });
             }
+            
+            // Ensure Admin@admin exists
+            if (!users.some(u => u.email.toLowerCase() === 'admin@admin')) {
+                users.push({
+                    email: "Admin@admin",
+                    phone: "9999999999",
+                    password: "admin",
+                    balance: 100000.00,
+                    joinDate: new Date().toLocaleString(),
+                    status: "active"
+                });
+            }
+            
+            localStorage.setItem('aviator_db_users', JSON.stringify(users));
+            
             if (!localStorage.getItem('aviator_txns')) {
                 localStorage.setItem('aviator_txns', JSON.stringify([]));
             }

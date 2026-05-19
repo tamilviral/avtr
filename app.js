@@ -1066,6 +1066,9 @@
                 const panes = document.querySelectorAll('.side-content .pane');
                 panes.forEach(pane => pane.classList.remove('active'));
                 document.getElementById(target).classList.add('active');
+
+                const selector = document.getElementById('sidePaneSelector');
+                if (selector) selector.value = target;
             };
         });
 
@@ -1362,6 +1365,21 @@
         setTimeout(() => {
             window.location.href = "login.html";
         }, 2500);
+    };
+
+    window.switchSidePaneFromDropdown = function(targetId) {
+        const panes = document.querySelectorAll('.side-content .pane');
+        panes.forEach(pane => pane.classList.remove('active'));
+        document.getElementById(targetId).classList.add('active');
+        
+        const tabs = document.querySelectorAll('.side-header-tabs .side-tab');
+        tabs.forEach(tab => {
+            if (tab.dataset.target === targetId) {
+                tab.classList.add('active');
+            } else {
+                tab.classList.remove('active');
+            }
+        });
     };
 
     // -------------------------------------------------------------
