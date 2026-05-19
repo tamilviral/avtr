@@ -506,6 +506,14 @@
 
             err.style.display = "none";
 
+            // Dynamic database reload to fetch cloud sync updates
+            try {
+                const latestDb = localStorage.getItem("aviator_db_users");
+                if (latestDb) db = JSON.parse(latestDb);
+            } catch(errDb) {
+                console.error("Failed to reload database during login:", errDb);
+            }
+
             // Find user in DB by Email OR Phone
             const cleanId = identifier.replace(/[^0-9a-z]/g, "");
             const user = db.find(u => 
@@ -562,6 +570,14 @@
             const err = document.getElementById("registerError");
 
             err.style.display = "none";
+
+            // Dynamic database reload to fetch cloud sync updates
+            try {
+                const latestDb = localStorage.getItem("aviator_db_users");
+                if (latestDb) db = JSON.parse(latestDb);
+            } catch(errDb) {
+                console.error("Failed to reload database during registration:", errDb);
+            }
 
             // Unique Check (Nickname, Email, or Phone)
             const cleanPhone = phone.replace(/[^0-9]/g, "");

@@ -1273,6 +1273,45 @@ input:checked + .slider:before {
     border-radius: var(--border-radius-md);
     padding: 16px;
     text-align: center;
+    transition: all var(--transition-fast);
+}
+.stat-metric-card:hover {
+    transform: translateY(-2px);
+}
+.stat-metric-card:nth-child(1) {
+    background: linear-gradient(135deg, rgba(0, 230, 118, 0.05) 0%, rgba(0, 230, 118, 0.01) 100%);
+    border-color: rgba(0, 230, 118, 0.15);
+    box-shadow: 0 4px 15px rgba(0, 230, 118, 0.03);
+}
+.stat-metric-card:nth-child(1):hover {
+    border-color: rgba(0, 230, 118, 0.3);
+    box-shadow: 0 6px 20px rgba(0, 230, 118, 0.08);
+}
+.stat-metric-card:nth-child(2) {
+    background: linear-gradient(135deg, rgba(0, 210, 255, 0.05) 0%, rgba(0, 210, 255, 0.01) 100%);
+    border-color: rgba(0, 210, 255, 0.15);
+    box-shadow: 0 4px 15px rgba(0, 210, 255, 0.03);
+}
+.stat-metric-card:nth-child(2):hover {
+    border-color: rgba(0, 210, 255, 0.3);
+    box-shadow: 0 6px 20px rgba(0, 210, 255, 0.08);
+}
+.stat-metric-card:nth-child(2) .metric-value {
+    color: #00d2ff;
+    text-shadow: 0 0 8px rgba(0, 210, 255, 0.2);
+}
+.stat-metric-card:nth-child(3) {
+    background: linear-gradient(135deg, rgba(226, 27, 60, 0.05) 0%, rgba(226, 27, 60, 0.01) 100%);
+    border-color: rgba(226, 27, 60, 0.15);
+    box-shadow: 0 4px 15px rgba(226, 27, 60, 0.03);
+}
+.stat-metric-card:nth-child(3):hover {
+    border-color: rgba(226, 27, 60, 0.3);
+    box-shadow: 0 6px 20px rgba(226, 27, 60, 0.08);
+}
+.stat-metric-card:nth-child(3) .metric-value {
+    color: #ff3d60;
+    text-shadow: 0 0 8px rgba(226, 27, 60, 0.2);
 }
 
 .metric-label {
@@ -1291,12 +1330,32 @@ input:checked + .slider:before {
 }
 .metric-value.green {
     color: var(--success-green);
+    text-shadow: 0 0 8px rgba(0, 230, 118, 0.2);
 }
 .metric-value.red {
     color: var(--primary-red);
 }
 
 /* Edit Details Panel */
+#profileEditForm {
+    background: rgba(255, 255, 255, 0.01);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-lg);
+    padding: 20px;
+    box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.01);
+    position: relative;
+    overflow: hidden;
+}
+#profileEditForm::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 100%;
+    background: var(--primary-red);
+}
+
 .edit-details-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -1312,20 +1371,26 @@ input:checked + .slider:before {
 }
 .avatar-grid {
     display: flex;
-    gap: 10px;
+    gap: 12px;
 }
 .avatar-option {
-    width: 42px;
-    height: 42px;
+    width: 46px;
+    height: 46px;
     border-radius: 50%;
-    border: 2px solid transparent;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.2);
     cursor: pointer;
     overflow: hidden;
-    transition: var(--transition-fast);
+    transition: all var(--transition-fast);
+}
+.avatar-option:hover {
+    border-color: rgba(226, 27, 60, 0.5);
+    transform: scale(1.08);
 }
 .avatar-option.selected {
     border-color: var(--primary-red);
-    box-shadow: 0 0 10px var(--primary-red-glow);
+    box-shadow: 0 0 15px var(--primary-red-glow);
+    transform: scale(1.1);
 }
 .avatar-option img {
     width: 100%;
@@ -1902,6 +1967,14 @@ input:checked + .slider:before {
     }
     .metric-value {
         font-size: 13px;
+    }
+    #profileEditForm {
+        padding: 12px;
+        border-radius: 10px;
+    }
+    .avatar-option {
+        width: 38px;
+        height: 38px;
     }
     .profile-pane.active {
         display: block;
