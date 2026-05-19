@@ -478,10 +478,7 @@
             
             <!-- Panel 1: Player Database -->
             <div class="admin-panel active" id="panelPlayers">
-                <div class="panel-title" style="display:flex; justify-content:space-between; align-items:center; width:100%; border-bottom: 1px dashed var(--border-color); padding-bottom: 12px; margin-bottom: 8px;">
-                    <span style="display:flex; align-items:center; gap:8px;">👥 Registered Players Database</span>
-                    <button class="submit-btn" id="resetDbBtn" style="background-color:var(--primary-red); padding:6px 14px; font-size:12px; width:auto; border-radius:6px; margin:0; box-shadow: 0 4px 12px rgba(226, 27, 60, 0.3);">Reset Database</button>
-                </div>
+                <h3 class="panel-title">👥 Registered Players Database</h3>
                 <div class="stats-grid">
                     <div class="stat-card">
                         <span class="stat-label">Active Pilot</span>
@@ -935,144 +932,6 @@
             }, 400);
         }
 
-        const BUCKET_URL = "https://kvdb.io/4R8C2ZBQanr1chJ9XRQGjx/db_users";
-
-        async function syncDatabaseToCloud() {
-            try {
-                await fetch(BUCKET_URL, {
-                    method: "POST",
-                    body: JSON.stringify(dbUsers)
-                });
-                console.log("☁️ Admin database synced to Cloud successfully!");
-            } catch (e) {
-                console.warn("Cloud DB write failed:", e);
-            }
-        }
-
-        async function syncDatabaseFromCloud() {
-            try {
-                const response = await fetch(BUCKET_URL);
-                if (response.ok) {
-                    const cloudDb = await response.json();
-                    if (Array.isArray(cloudDb) && cloudDb.length > 0) {
-                        dbUsers = cloudDb;
-                        localStorage.setItem("aviator_db_users", JSON.stringify(dbUsers));
-                        console.log("☁️ Admin database synchronized from Cloud successfully!", dbUsers);
-                        
-                        // Redraw UIs after cloud updates
-                        updateUI();
-                    }
-                }
-            } catch (e) {
-                console.warn("Cloud DB read failed:", e);
-            }
-        }
-
-        const TXNS_BUCKET_URL = "https://kvdb.io/4R8C2ZBQanr1chJ9XRQGjx/db_txns";
-
-        async function syncTransactionsToCloud() {
-            try {
-                await fetch(TXNS_BUCKET_URL, {
-                    method: "POST",
-                    body: JSON.stringify(txnsList)
-                });
-                console.log("☁️ Admin transactions synced to Cloud successfully!");
-            } catch (e) {
-                console.warn("Cloud transactions write failed:", e);
-            }
-        }
-
-        async function syncTransactionsFromCloud() {
-            try {
-                const response = await fetch(TXNS_BUCKET_URL);
-                if (response.ok) {
-                    const cloudTxns = await response.json();
-                    if (Array.isArray(cloudTxns)) {
-                        txnsList = cloudTxns;
-                        localStorage.setItem("aviator_txns", JSON.stringify(txnsList));
-                        console.log("☁️ Admin transactions synchronized from Cloud successfully!", txnsList);
-                        
-                        // Redraw UIs
-                        updateUI();
-                    }
-                }
-            } catch (e) {
-                console.warn("Cloud transactions read failed:", e);
-            }
-        }
-
-        const TICKETS_BUCKET_URL = "https://kvdb.io/4R8C2ZBQanr1chJ9XRQGjx/db_tickets";
-
-        async function syncTicketsToCloud() {
-            try {
-                await fetch(TICKETS_BUCKET_URL, {
-                    method: "POST",
-                    body: JSON.stringify(ticketsList)
-                });
-                console.log("☁️ Admin support tickets synced to Cloud successfully!");
-            } catch (e) {
-                console.warn("Cloud tickets write failed:", e);
-            }
-        }
-
-        async function syncTicketsFromCloud() {
-            try {
-                const response = await fetch(TICKETS_BUCKET_URL);
-                if (response.ok) {
-                    const cloudTickets = await response.json();
-                    if (Array.isArray(cloudTickets)) {
-                        ticketsList = cloudTickets;
-                        localStorage.setItem("aviator_support_tickets", JSON.stringify(ticketsList));
-                        console.log("☁️ Admin support tickets synchronized from Cloud successfully!", ticketsList);
-                        
-                        // Redraw UIs
-                        updateUI();
-                    }
-                }
-            } catch (e) {
-                console.warn("Cloud tickets read failed:", e);
-            }
-        }
-
-        const RIGGING_BUCKET_URL = "https://kvdb.io/4R8C2ZBQanr1chJ9XRQGjx/db_rigging";
-
-        async function syncRiggingToCloud(val) {
-            try {
-                if (val) {
-                    await fetch(RIGGING_BUCKET_URL, {
-                        method: "POST",
-                        body: JSON.stringify({ nextCrash: val })
-                    });
-                    console.log("☁️ Rigging target synced to Cloud:", val);
-                } else {
-                    await fetch(RIGGING_BUCKET_URL, {
-                        method: "POST",
-                        body: JSON.stringify(null)
-                    });
-                    console.log("☁️ Rigging target cleared from Cloud");
-                }
-            } catch (e) {
-                console.warn("Cloud rigging write failed:", e);
-            }
-        }
-
-        async function syncRiggingFromCloud() {
-            try {
-                const response = await fetch(RIGGING_BUCKET_URL);
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data && data.nextCrash) {
-                        localStorage.setItem("aviator_next_crash", data.nextCrash);
-                    } else {
-                        localStorage.removeItem("aviator_next_crash");
-                    }
-                    updateUI();
-                }
-            } catch (e) {
-                console.warn("Cloud rigging read failed:", e);
-            }
-        }
-
         function loadFromLocalStorage() {
             const userStr = localStorage.getItem("aviator_user");
             const txnsStr = localStorage.getItem("aviator_txns");
@@ -1080,67 +939,21 @@
             const ticketsStr = localStorage.getItem("aviator_support_tickets");
 
             if (userStr) {
-                try {
-                    userObj = JSON.parse(userStr);
-                } catch (e) {
-                    userObj = null;
-                }
+                userObj = JSON.parse(userStr);
             }
-            
             if (txnsStr) {
-                try {
-                    txnsList = JSON.parse(txnsStr);
-                } catch (e) {
-                    txnsList = [];
-                }
+                txnsList = JSON.parse(txnsStr);
             }
-            if (!Array.isArray(txnsList)) {
-                txnsList = [];
-                localStorage.setItem("aviator_txns", JSON.stringify(txnsList));
-            }
-
             if (dbStr) {
-                try {
-                    dbUsers = JSON.parse(dbStr);
-                } catch (e) {
-                    dbUsers = null;
-                }
-            }
-            if (!Array.isArray(dbUsers)) {
-                if (userObj) {
-                    dbUsers = [JSON.parse(JSON.stringify(userObj))];
-                } else {
-                    dbUsers = [
-                        {
-                            nickname: "LuckyPilot",
-                            email: "pilot@aviator.com",
-                            phone: "9876543210",
-                            password: "password123",
-                            balance: 10000.00,
-                            status: "ACTIVE",
-                            stats: {
-                                joined: new Date().toLocaleDateString(),
-                                rounds: 0,
-                                wins: 0,
-                                highest: 0.00,
-                                profit: 0.00
-                            }
-                        }
-                    ];
-                }
+                dbUsers = JSON.parse(dbStr);
+            } else if (userObj) {
+                dbUsers = [JSON.parse(JSON.stringify(userObj))];
                 localStorage.setItem("aviator_db_users", JSON.stringify(dbUsers));
             }
-
             if (ticketsStr) {
-                try {
-                    ticketsList = JSON.parse(ticketsStr);
-                } catch (e) {
-                    ticketsList = [];
-                }
-            }
-            if (!Array.isArray(ticketsList)) {
+                ticketsList = JSON.parse(ticketsStr);
+            } else {
                 ticketsList = [];
-                localStorage.setItem("aviator_support_tickets", JSON.stringify(ticketsList));
             }
         }
 
@@ -1150,18 +963,12 @@
             }
             if (dbUsers) {
                 localStorage.setItem("aviator_db_users", JSON.stringify(dbUsers));
-                // Asynchronously sync local changes to cloud
-                syncDatabaseToCloud();
             }
             if (txnsList) {
                 localStorage.setItem("aviator_txns", JSON.stringify(txnsList));
-                // Asynchronously sync local changes to cloud
-                syncTransactionsToCloud();
             }
             if (ticketsList) {
                 localStorage.setItem("aviator_support_tickets", JSON.stringify(ticketsList));
-                // Asynchronously sync local changes to cloud
-                syncTicketsToCloud();
             }
         }
 
@@ -1567,92 +1374,8 @@
             }
         });
 
-        // Reset Database click listener
-        document.getElementById("resetDbBtn").addEventListener("click", async () => {
-            if (!confirm("🚨 WARNING: Are you sure you want to RESET the entire system database?\n\nThis will wipe all custom registered accounts, transaction logs, and support tickets globally, resetting the application to fresh defaults!")) {
-                return;
-            }
-
-            // Create default user profile to prevent lockouts
-            const defaultUser = {
-                nickname: "LuckyPilot",
-                email: "pilot@aviator.com",
-                phone: "9876543210",
-                password: "password123",
-                balance: 10000.00,
-                status: "ACTIVE",
-                stats: {
-                    joined: new Date().toLocaleDateString(),
-                    rounds: 0,
-                    wins: 0,
-                    highest: 0.00,
-                    profit: 0.00
-                }
-            };
-
-            // Reset local variables
-            dbUsers = [defaultUser];
-            txnsList = [];
-            ticketsList = [
-                {
-                    id: "TKT842910",
-                    userEmail: "pilot@aviator.com",
-                    userNickname: "LuckyPilot",
-                    date: new Date().toLocaleString(),
-                    category: "Deposit Query",
-                    subject: "Transaction delayed",
-                    message: "Welcome to Aviator Support! Your system database has been fresh-initialized.",
-                    status: "RESOLVED",
-                    adminResponse: "Database reset completed successfully."
-                }
-            ];
-
-            // Save to localStorage
-            localStorage.setItem("aviator_db_users", JSON.stringify(dbUsers));
-            localStorage.setItem("aviator_txns", JSON.stringify(txnsList));
-            localStorage.setItem("aviator_support_tickets", JSON.stringify(ticketsList));
-            localStorage.removeItem("aviator_next_crash");
-
-            // Sync resets immediately to the Cloud!
-            try {
-                showNotification("Syncing database reset to cloud...", "info");
-                
-                // 1. Sync User DB
-                await fetch("https://kvdb.io/4R8C2ZBQanr1chJ9XRQGjx/db_users", {
-                    method: "POST",
-                    body: JSON.stringify(dbUsers)
-                });
-                
-                // 2. Sync Transactions DB
-                await fetch("https://kvdb.io/4R8C2ZBQanr1chJ9XRQGjx/db_txns", {
-                    method: "POST",
-                    body: JSON.stringify(txnsList)
-                });
-
-                // 3. Sync Tickets DB
-                await fetch("https://kvdb.io/4R8C2ZBQanr1chJ9XRQGjx/db_tickets", {
-                    method: "POST",
-                    body: JSON.stringify(ticketsList)
-                });
-
-                // 4. Reset Rigging DB
-                await fetch("https://kvdb.io/4R8C2ZBQanr1chJ9XRQGjx/db_rigging", {
-                    method: "POST",
-                    body: JSON.stringify(null)
-                });
-
-                showNotification("☁️ Cloud database reset and synced successfully!", "success");
-            } catch (e) {
-                console.error("Failed to sync reset to cloud:", e);
-                showNotification("Database reset locally, but cloud sync failed.", "warning");
-            }
-
-            // Redraw panel UI
-            updateUI();
-        });
-
         // Rigging Form submits
-        document.getElementById("rigForm").addEventListener("submit", async (e) => {
+        document.getElementById("rigForm").addEventListener("submit", (e) => {
             e.preventDefault();
             const val = parseFloat(document.getElementById("targetMult").value);
             if (isNaN(val) || val < 1.00) return;
@@ -1661,29 +1384,25 @@
             updateUI();
             document.getElementById("targetMult").value = "";
             showNotification(`Flight outcome rigged! Next round will crash at exactly ${val.toFixed(2)}x.`, "success");
-            await syncRiggingToCloud(val);
         });
 
         // Fast Rigging Click triggers
-        document.getElementById("rigInstantCrash").addEventListener("click", async () => {
+        document.getElementById("rigInstantCrash").addEventListener("click", () => {
             localStorage.setItem("aviator_next_crash", "1.00");
             updateUI();
             showNotification("Rigged! Next round will crash instantly at 1.00x.", "error");
-            await syncRiggingToCloud(1.00);
         });
 
-        document.getElementById("rigMoonFlight").addEventListener("click", async () => {
+        document.getElementById("rigMoonFlight").addEventListener("click", () => {
             localStorage.setItem("aviator_next_crash", "100.00");
             updateUI();
             showNotification("Rigged! Next round will fly to the moon and crash at 100.00x.", "success");
-            await syncRiggingToCloud(100.00);
         });
 
-        document.getElementById("clearRigBtn").addEventListener("click", async () => {
+        document.getElementById("clearRigBtn").addEventListener("click", () => {
             localStorage.removeItem("aviator_next_crash");
             updateUI();
             showNotification("Rigging override cleared. Next rounds will use dynamic cryptographic math.", "success");
-            await syncRiggingToCloud(null);
         });
 
         // Dynamic filters search
@@ -1764,18 +1483,6 @@
 
         // Initial launch
         updateUI();
-        syncDatabaseFromCloud();
-        syncTransactionsFromCloud();
-        syncTicketsFromCloud();
-        syncRiggingFromCloud();
-
-        // Start background synchronization polling (every 5 seconds) to ensure real-time mobile/desktop alignment
-        setInterval(() => {
-            syncDatabaseFromCloud();
-            syncTransactionsFromCloud();
-            syncTicketsFromCloud();
-            syncRiggingFromCloud();
-        }, 5000);
     </script>
 </body>
 </html>

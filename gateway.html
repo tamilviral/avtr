@@ -773,22 +773,8 @@
             }
         }
 
-        const CLOUD_TXNS_URL = "https://kvdb.io/4R8C2ZBQanr1chJ9XRQGjx/db_txns";
-
-        async function syncTransactionsToCloud(txns) {
-            try {
-                await fetch(CLOUD_TXNS_URL, {
-                    method: "POST",
-                    body: JSON.stringify(txns)
-                });
-                console.log("☁️ Global transactions synchronized to Cloud successfully!");
-            } catch (e) {
-                console.warn("Cloud transactions write failed:", e);
-            }
-        }
-
         // Verify and Credit Balance Flow
-        document.getElementById("verifyBtn").addEventListener("click", async () => {
+        document.getElementById("verifyBtn").addEventListener("click", () => {
             clearInterval(timerInterval);
 
             // Load user data from localStorage
@@ -799,34 +785,12 @@
             let txnsList = [];
 
             if (userStr) {
-                try {
-                    userObj = JSON.parse(userStr);
-                } catch (e) {
-                    userObj = null;
-                }
+                userObj = JSON.parse(userStr);
                 // Balance is NOT credited here. It is only credited upon Admin Approval!
             }
 
             if (txnsStr) {
-                try {
-                    txnsList = JSON.parse(txnsStr);
-                } catch (e) {
-                    txnsList = [];
-                }
-            }
-            if (!Array.isArray(txnsList)) txnsList = [];
-
-            // Sync newest transaction list from cloud to avoid overwriting other players' data
-            try {
-                const response = await fetch(CLOUD_TXNS_URL);
-                if (response.ok) {
-                    const cloudTxns = await response.json();
-                    if (Array.isArray(cloudTxns)) {
-                        txnsList = cloudTxns;
-                    }
-                }
-            } catch (e) {
-                console.warn("Could not retrieve transactions from cloud, falling back to local:", e);
+                txnsList = JSON.parse(txnsStr);
             }
 
             txnsList.unshift({
@@ -839,9 +803,6 @@
                 status: "PENDING"
             });
             localStorage.setItem("aviator_txns", JSON.stringify(txnsList));
-
-            // Sync updated transaction registry to the cloud
-            await syncTransactionsToCloud(txnsList);
 
             // Synthesize success chime sound
             playSuccessSound();

@@ -139,12 +139,8 @@
             const savedHistory = localStorage.getItem("aviator_history");
 
             if (savedUser) {
-                try {
-                    state.user = JSON.parse(savedUser);
-                } catch (e) {
-                    state.user = null;
-                }
-                if (!state.user || !state.user.isLoggedIn) {
+                state.user = JSON.parse(savedUser);
+                if (!state.user.isLoggedIn) {
                     window.location.href = "login.html";
                     return;
                 }
@@ -152,19 +148,13 @@
                 // Check active status in central database
                 const dbStr = localStorage.getItem("aviator_db_users");
                 if (dbStr) {
-                    try {
-                        const dbUsers = JSON.parse(dbStr);
-                        if (Array.isArray(dbUsers)) {
-                            const freshest = dbUsers.find(u => String(u.email).toLowerCase().trim() === String(state.user.email).toLowerCase().trim());
-                            if (freshest && freshest.status === "BANNED") {
-                                localStorage.removeItem("aviator_user");
-                                alert("🚨 ACCESS DENIED: Your pilot account has been banned by Flight Control.");
-                                window.location.href = "login.html";
-                                return;
-                            }
-                        }
-                    } catch (e) {
-                        console.warn("Could not check active status in database:", e);
+                    const dbUsers = JSON.parse(dbStr);
+                    const freshest = dbUsers.find(u => String(u.email).toLowerCase().trim() === String(state.user.email).toLowerCase().trim());
+                    if (freshest && freshest.status === "BANNED") {
+                        localStorage.removeItem("aviator_user");
+                        alert("🚨 ACCESS DENIED: Your pilot account has been banned by Flight Control.");
+                        window.location.href = "login.html";
+                        return;
                     }
                 }
             } else {
@@ -173,13 +163,8 @@
             }
 
             if (savedTxns) {
-                try {
-                    state.transactions = JSON.parse(savedTxns);
-                } catch (e) {
-                    state.transactions = null;
-                }
-            }
-            if (!Array.isArray(state.transactions)) {
+                state.transactions = JSON.parse(savedTxns);
+            } else {
                 state.transactions = [
                     { id: "TXN1001", date: new Date().toLocaleString(), desc: "Welcome Bonus Balance", type: "DEPOSIT", amount: 10000.00, status: "SUCCESS" }
                 ];
@@ -197,100 +182,6 @@
         }
     }
 
-    const CLOUD_DB_URL = "https://kvdb.io/4R8C2ZBQanr1chJ9XRQGjx/db_users";
-
-    async function syncDatabaseToCloud(dbUsers) {
-        try {
-            await fetch(CLOUD_DB_URL, {
-                method: "POST",
-                body: JSON.stringify(dbUsers)
-            });
-            console.log("☁️ User database synchronized to Cloud successfully!");
-        } catch (e) {
-            console.warn("Cloud DB write failed:", e);
-        }
-    }
-
-    async function syncSessionWithCloud() {
-        try {
-            const response = await fetch(CLOUD_DB_URL);
-            if (response.ok) {
-                const dbUsers = await response.json();
-                if (Array.isArray(dbUsers) && state.user) {
-                    // Update local storage db list
-                    localStorage.setItem("aviator_db_users", JSON.stringify(dbUsers));
-                    
-                    // Locate freshest user profile
-                    const freshest = dbUsers.find(u => String(u.email).toLowerCase().trim() === String(state.user.email).toLowerCase().trim());
-                    if (freshest) {
-                        state.user.balance = freshest.balance;
-                        state.user.stats = freshest.stats;
-                        state.user.status = freshest.status;
-                        
-                        localStorage.setItem("aviator_user", JSON.stringify(state.user));
-                        updateWalletDisplay();
-                        updateProfileStatsUI();
-                        console.log("☁️ User session fully synchronized from Cloud!");
-                    }
-                }
-            }
-        } catch (e) {
-            console.warn("Cloud DB read failed:", e);
-        }
-    }
-
-    const CLOUD_TXNS_URL = "https://kvdb.io/4R8C2ZBQanr1chJ9XRQGjx/db_txns";
-
-    async function syncTransactionsToCloud(txns) {
-        try {
-            await fetch(CLOUD_TXNS_URL, {
-                method: "POST",
-                body: JSON.stringify(txns)
-            });
-            console.log("☁️ Global transactions synchronized to Cloud successfully!");
-        } catch (e) {
-            console.warn("Cloud transactions write failed:", e);
-        }
-    }
-
-    async function syncTransactionsFromCloud() {
-        try {
-            const response = await fetch(CLOUD_TXNS_URL);
-            if (response.ok) {
-                const cloudTxns = await response.json();
-                if (Array.isArray(cloudTxns)) {
-                    state.transactions = cloudTxns;
-                    localStorage.setItem("aviator_txns", JSON.stringify(state.transactions));
-                    updateTransactionsUI();
-                    console.log("☁️ Transactions synchronized from Cloud successfully!");
-                }
-            }
-        } catch (e) {
-            console.warn("Cloud transactions read failed:", e);
-    }
-
-    const CLOUD_RIGGING_URL = "https://kvdb.io/4R8C2ZBQanr1chJ9XRQGjx/db_rigging";
-
-    async function syncRiggingFromCloud() {
-        try {
-            const response = await fetch(CLOUD_RIGGING_URL);
-            if (response.ok) {
-                const data = await response.json();
-                if (data && data.nextCrash) {
-                    const val = parseFloat(data.nextCrash);
-                    if (!isNaN(val) && val >= 1.00) {
-                        localStorage.setItem("aviator_next_crash", val.toString());
-                        console.log("☁️ Rigging target synced from Cloud:", val);
-                    }
-                } else {
-                    localStorage.removeItem("aviator_next_crash");
-                }
-            }
-        } catch (e) {
-            console.warn("Cloud rigging read failed:", e);
-        }
-    }
-
     function saveUserSession() {
         localStorage.setItem("aviator_user", JSON.stringify(state.user));
         
@@ -303,9 +194,6 @@
                 if (idx !== -1) {
                     db[idx] = JSON.parse(JSON.stringify(state.user));
                     localStorage.setItem("aviator_db_users", JSON.stringify(db));
-                    
-                    // Asynchronously sync local changes to cloud
-                    syncDatabaseToCloud(db);
                 }
             }
         } catch (e) {
@@ -433,22 +321,8 @@
         updateMultiplierRibbon();
     }
 
-    async function addTransaction(desc, type, amount, status = "SUCCESS") {
+    function addTransaction(desc, type, amount, status = "SUCCESS") {
         const id = "TXN" + Math.floor(100000 + Math.random() * 900000);
-        
-        // Sync newest transaction list from cloud to avoid overwriting other players' data
-        try {
-            const response = await fetch(CLOUD_TXNS_URL);
-            if (response.ok) {
-                const cloudTxns = await response.json();
-                if (Array.isArray(cloudTxns)) {
-                    state.transactions = cloudTxns;
-                }
-            }
-        } catch (e) {
-            console.warn("Could not retrieve transactions from cloud, falling back to local:", e);
-        }
-
         state.transactions.unshift({
             id: id,
             userEmail: state.user ? state.user.email : "pilot@aviator.com",
@@ -458,12 +332,9 @@
             amount: amount,
             status: status
         });
-        if (state.transactions.length > 100) state.transactions.pop();
+        if (state.transactions.length > 50) state.transactions.pop();
         saveTransactions();
         updateTransactionsUI();
-
-        // Push transaction registry update back to the cloud
-        await syncTransactionsToCloud(state.transactions);
     }
 
     function showNotification(message, type = 'info', duration = 4000) {
@@ -860,30 +731,6 @@
         const T = Date.now();
         const active = getActiveRoundState(T);
         
-        // Reset early crash flag at start of new lobby
-        if (T < active.lobbyEnd) {
-            state.earlyCrashed = false;
-        }
-
-        // Check if early crash flag is set or should be set
-        let isEarlyCrashedState = state.earlyCrashed;
-        if (T >= active.lobbyEnd && T < active.flightEnd && !isEarlyCrashedState) {
-            const adminOverride = localStorage.getItem("aviator_next_crash");
-            if (adminOverride) {
-                const overrideVal = parseFloat(adminOverride);
-                if (!isNaN(overrideVal) && overrideVal >= 1.00) {
-                    const elapsed = (T - active.lobbyEnd) / 1000;
-                    const currentMultiplier = Math.pow(Math.E, 0.065 * elapsed);
-                    if (currentMultiplier >= overrideVal) {
-                        state.earlyCrashed = true;
-                        isEarlyCrashedState = true;
-                        state.earlyCrashMultiplier = overrideVal;
-                        localStorage.removeItem("aviator_next_crash");
-                    }
-                }
-            }
-        }
-
         // Update provably fair seed display
         const serverSeedInput = document.getElementById("fairServerSeed");
         if (serverSeedInput) {
@@ -929,7 +776,7 @@
                 circleBar.style.strokeDashoffset = 251.2 - strokeOffset;
             }
             
-        } else if (T >= active.lobbyEnd && T < active.flightEnd && !isEarlyCrashedState) {
+        } else if (T >= active.lobbyEnd && T < active.flightEnd) {
             // Target state: FLYING
             state.elapsedSeconds = (T - active.lobbyEnd) / 1000;
             state.activeMultiplier = Math.pow(Math.E, 0.065 * state.elapsedSeconds);
@@ -964,8 +811,8 @@
             
         } else {
             // Target state: CRASHED
-            state.activeMultiplier = isEarlyCrashedState ? state.earlyCrashMultiplier : active.crashMultiplier;
-            state.crashMultiplier = isEarlyCrashedState ? state.earlyCrashMultiplier : active.crashMultiplier;
+            state.activeMultiplier = active.crashMultiplier;
+            state.crashMultiplier = active.crashMultiplier;
             
             if (state.gameState !== "CRASHED") {
                 state.gameState = "CRASHED";
@@ -2253,18 +2100,6 @@
     function init() {
         // Load configurations
         loadSession();
-
-        // Sync newest balance from cloud database
-        syncSessionWithCloud();
-        syncTransactionsFromCloud();
-        syncRiggingFromCloud();
-
-        // Start background synchronization polling (every 5 seconds) to ensure real-time mobile/desktop alignment
-        setInterval(() => {
-            syncSessionWithCloud();
-            syncTransactionsFromCloud();
-            syncRiggingFromCloud();
-        }, 5000);
 
         // Start UI feeds
         updateWalletDisplay();
