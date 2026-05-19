@@ -29,10 +29,15 @@
 
     // Chat bots names & lines
     const botNames = [
-        "Cap_Vikram", "Pilot_Rohan", "SkyKing", "JetSetter", "AviatorPro",
-        "RedBull_Air", "Viper_99", "CloudSurfer", "Wingman", "Ace_Ankit",
-        "RaptorFly", "FalconX", "AltFlyer", "WagerPilot", "ApexSky",
-        "TurboProp", "MachSpeed", "HorizonLine", "Stratosphere", "Altitude"
+        "Aadhavan", "Aari", "Abinaya", "Akilan", "Amudha", "Anbu", "Arul", "Aruna",
+        "Bhuvana", "Chitra", "Deva", "Ezhil", "Gokul", "Hari", "Ilamathi", "Iniya",
+        "Janani", "Karthik", "Kavitha", "Lakshmi", "Madhan", "Malar", "Mani", "Meena",
+        "Mugilan", "Nila", "Nithya", "Pugazh", "Praveen", "Raja", "Rani", "Sangeetha",
+        "Saravanan", "Selvi", "Shyam", "Tamilselvi", "Tharun", "Udhay", "Uma", "Vaishnavi",
+        "Vasanth", "Yazhini", "Yuvan", "Aarthi", "Balan", "Devi", "Dinesh", "Eshwar",
+        "Gowri", "Harini", "Isai", "Jeeva", "Kavin", "Lavanya", "Maran", "Nandhini",
+        "Oviya", "Parthiban", "Poornima", "Ragavi", "Sahana", "Santhosh", "Tamilan",
+        "Usha", "Vetrivel", "Vinoth", "Priya", "Raghul", "Shruti", "Thirumathi"
     ];
 
     const lobbyBotChatLines = [
@@ -1055,16 +1060,75 @@
     // 9. COCKPIT INTERACTION & INTERACTIVE TABS
     // -------------------------------------------------------------
     function setupAppNavigation() {
-        // Tab Pane switches dropdown selector (All Bets, My Bets, History, Chat)
-        const sideSelector = document.getElementById('sidePaneSelector');
-        if (sideSelector) {
-            sideSelector.onchange = (e) => {
-                const target = e.target.value;
+        // Tab Pane switches (All Bets, My Bets, History, Chat)
+        const tabs = document.querySelectorAll('.side-header-tabs .side-tab');
+        tabs.forEach(tab => {
+            tab.onclick = () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                const target = tab.dataset.target;
                 const panes = document.querySelectorAll('.side-content .pane');
                 panes.forEach(pane => pane.classList.remove('active'));
                 document.getElementById(target).classList.add('active');
+
+                // Sync mobile dropdown text and active choice
+                const activeLabel = document.getElementById('activeTabLabel');
+                if (activeLabel) activeLabel.textContent = tab.textContent;
+                
+                const mTabs = document.querySelectorAll('.mobile-side-tabs-dropdown .dropdown-option');
+                mTabs.forEach(t => t.classList.remove('active'));
+                const activeMTab = document.getElementById(`m-tab-${target}`);
+                if (activeMTab) activeMTab.classList.add('active');
             };
-        }
+        });
+
+        // Register window triggers for Mobile slide dropdown tab switcher
+        window.toggleMobileTabsDropdown = function() {
+            const options = document.getElementById('mobileTabsDropdownOptions');
+            if (options) {
+                options.classList.toggle('active');
+                const chevron = document.querySelector('.mobile-side-tabs-dropdown .dropdown-trigger i');
+                if (chevron) {
+                    if (options.classList.contains('active')) {
+                        chevron.style.transform = 'rotate(180deg)';
+                    } else {
+                        chevron.style.transform = 'rotate(0deg)';
+                    }
+                }
+            }
+        };
+
+        window.selectMobileTab = function(targetId, label) {
+            const activeLabel = document.getElementById('activeTabLabel');
+            if (activeLabel) activeLabel.textContent = label;
+
+            const options = document.getElementById('mobileTabsDropdownOptions');
+            if (options) {
+                options.classList.remove('active');
+                const chevron = document.querySelector('.mobile-side-tabs-dropdown .dropdown-trigger i');
+                if (chevron) chevron.style.transform = 'rotate(0deg)';
+            }
+
+            const mTabs = document.querySelectorAll('.mobile-side-tabs-dropdown .dropdown-option');
+            mTabs.forEach(t => t.classList.remove('active'));
+            const activeMTab = document.getElementById(`m-tab-${targetId}`);
+            if (activeMTab) activeMTab.classList.add('active');
+
+            const dTabs = document.querySelectorAll('.side-header-tabs .side-tab');
+            dTabs.forEach(t => {
+                if (t.dataset.target === targetId) {
+                    t.classList.add('active');
+                } else {
+                    t.classList.remove('active');
+                }
+            });
+
+            const panes = document.querySelectorAll('.side-content .pane');
+            panes.forEach(pane => pane.classList.remove('active'));
+            const targetPane = document.getElementById(targetId);
+            if (targetPane) targetPane.classList.add('active');
+        };
 
         // Profile dialog internal tabs navigation
         const sideBtns = document.querySelectorAll('.profile-sidebar .profile-side-btn');

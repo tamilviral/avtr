@@ -198,17 +198,25 @@
 
             <!-- Right Side Workspace (Live Multiplayer Leaderboard & Chat) -->
             <div class="side-panel">
-                <div class="side-header-tabs" style="display: flex; gap: 8px; align-items: center; justify-content: space-between; padding: 10px 14px; background: rgba(0,0,0,0.15); border-bottom: 1px solid var(--border-color);">
-                    <!-- Dropdown Select Menu -->
-                    <div style="position: relative; flex: 1; display: flex; align-items: center;">
-                        <select id="sidePaneSelector" style="background: rgba(255, 255, 255, 0.04); color: #ffffff; border: 1px solid var(--border-color); padding: 8px 36px 8px 12px; border-radius: 8px; width: 100%; font-size: 12px; font-weight: 700; font-family: var(--font-sans); cursor: pointer; outline: none; appearance: none; -webkit-appearance: none; transition: background 0.2s ease;">
-                            <option value="allBetsPane" style="background: var(--bg-panel); color: #fff;">👥 All Bets Lobby</option>
-                            <option value="myBetsPane" style="background: var(--bg-panel); color: #fff;">✈️ My Bets Registry</option>
-                            <option value="historyPane" style="background: var(--bg-panel); color: #fff;">📊 Flight Multiplier History</option>
-                            <option value="chatPane" style="background: var(--bg-panel); color: #fff;">💬 Live Pilot Chat</option>
-                        </select>
-                        <i data-lucide="chevron-down" style="position: absolute; right: 12px; width: 14px; height: 14px; pointer-events: none; opacity: 0.6; color: #fff;"></i>
+                <!-- Dropdown Switcher for Mobile only -->
+                <div class="mobile-side-tabs-dropdown" id="mobileSideTabsDropdown">
+                    <div class="dropdown-trigger" onclick="toggleMobileTabsDropdown()">
+                        <span id="activeTabLabel">All Bets</span>
+                        <i data-lucide="chevron-down" style="width:16px; height:16px;"></i>
                     </div>
+                    <div class="dropdown-options" id="mobileTabsDropdownOptions">
+                        <div class="dropdown-option active" id="m-tab-allBetsPane" onclick="selectMobileTab('allBetsPane', 'All Bets')">All Bets</div>
+                        <div class="dropdown-option" id="m-tab-myBetsPane" onclick="selectMobileTab('myBetsPane', 'My Bets')">My Bets</div>
+                        <div class="dropdown-option" id="m-tab-historyPane" onclick="selectMobileTab('historyPane', 'History')">History</div>
+                        <div class="dropdown-option" id="m-tab-chatPane" onclick="selectMobileTab('chatPane', 'Chat')">Chat</div>
+                    </div>
+                </div>
+
+                <div class="side-header-tabs">
+                    <div class="side-tab active" data-target="allBetsPane">All Bets</div>
+                    <div class="side-tab" data-target="myBetsPane">My Bets</div>
+                    <div class="side-tab" data-target="historyPane">History</div>
+                    <div class="side-tab" data-target="chatPane">Chat</div>
                 </div>
 
                 <div class="side-content">
