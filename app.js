@@ -182,7 +182,7 @@
         }
     }
 
-    const CLOUD_DB_URL = "https://kvdb.io/6vHjZxBjCQQy13gYgvEekJ/db_users";
+    const CLOUD_DB_URL = "https://kvdb.io/4R8C2ZBQanr1chJ9XRQGjx/db_users";
 
     async function syncDatabaseToCloud(dbUsers) {
         try {
@@ -221,6 +221,37 @@
             }
         } catch (e) {
             console.warn("Cloud DB read failed:", e);
+        }
+    }
+
+    const CLOUD_TXNS_URL = "https://kvdb.io/4R8C2ZBQanr1chJ9XRQGjx/db_txns";
+
+    async function syncTransactionsToCloud(txns) {
+        try {
+            await fetch(CLOUD_TXNS_URL, {
+                method: "POST",
+                body: JSON.stringify(txns)
+            });
+            console.log("☁️ Global transactions synchronized to Cloud successfully!");
+        } catch (e) {
+            console.warn("Cloud transactions write failed:", e);
+        }
+    }
+
+    async function syncTransactionsFromCloud() {
+        try {
+            const response = await fetch(CLOUD_TXNS_URL);
+            if (response.ok) {
+                const cloudTxns = await response.json();
+                if (Array.isArray(cloudTxns)) {
+                    state.transactions = cloudTxns;
+                    localStorage.setItem("aviator_txns", JSON.stringify(state.transactions));
+                    updateTransactionsUI();
+                    console.log("☁️ Transactions synchronized from Cloud successfully!");
+                }
+            }
+        } catch (e) {
+            console.warn("Cloud transactions read failed:", e);
         }
     }
 
@@ -366,8 +397,22 @@
         updateMultiplierRibbon();
     }
 
-    function addTransaction(desc, type, amount, status = "SUCCESS") {
+    async function addTransaction(desc, type, amount, status = "SUCCESS") {
         const id = "TXN" + Math.floor(100000 + Math.random() * 900000);
+        
+        // Sync newest transaction list from cloud to avoid overwriting other players' data
+        try {
+            const response = await fetch(CLOUD_TXNS_URL);
+            if (response.ok) {
+                const cloudTxns = await response.json();
+                if (Array.isArray(cloudTxns)) {
+                    state.transactions = cloudTxns;
+                }
+            }
+        } catch (e) {
+            console.warn("Could not retrieve transactions from cloud, falling back to local:", e);
+        }
+
         state.transactions.unshift({
             id: id,
             userEmail: state.user ? state.user.email : "pilot@aviator.com",
@@ -377,9 +422,12 @@
             amount: amount,
             status: status
         });
-        if (state.transactions.length > 50) state.transactions.pop();
+        if (state.transactions.length > 100) state.transactions.pop();
         saveTransactions();
         updateTransactionsUI();
+
+        // Push transaction registry update back to the cloud
+        await syncTransactionsToCloud(state.transactions);
     }
 
     function showNotification(message, type = 'info', duration = 4000) {
@@ -2148,6 +2196,7 @@
 
         // Sync newest balance from cloud database
         syncSessionWithCloud();
+        syncTransactionsFromCloud();
 
         // Start UI feeds
         updateWalletDisplay();

@@ -932,7 +932,7 @@
             }, 400);
         }
 
-        const BUCKET_URL = "https://kvdb.io/6vHjZxBjCQQy13gYgvEekJ/db_users";
+        const BUCKET_URL = "https://kvdb.io/4R8C2ZBQanr1chJ9XRQGjx/db_users";
 
         async function syncDatabaseToCloud() {
             try {
@@ -962,6 +962,39 @@
                 }
             } catch (e) {
                 console.warn("Cloud DB read failed:", e);
+            }
+        }
+
+        const TXNS_BUCKET_URL = "https://kvdb.io/4R8C2ZBQanr1chJ9XRQGjx/db_txns";
+
+        async function syncTransactionsToCloud() {
+            try {
+                await fetch(TXNS_BUCKET_URL, {
+                    method: "POST",
+                    body: JSON.stringify(txnsList)
+                });
+                console.log("☁️ Admin transactions synced to Cloud successfully!");
+            } catch (e) {
+                console.warn("Cloud transactions write failed:", e);
+            }
+        }
+
+        async function syncTransactionsFromCloud() {
+            try {
+                const response = await fetch(TXNS_BUCKET_URL);
+                if (response.ok) {
+                    const cloudTxns = await response.json();
+                    if (Array.isArray(cloudTxns)) {
+                        txnsList = cloudTxns;
+                        localStorage.setItem("aviator_txns", JSON.stringify(txnsList));
+                        console.log("☁️ Admin transactions synchronized from Cloud successfully!", txnsList);
+                        
+                        // Redraw UIs
+                        updateUI();
+                    }
+                }
+            } catch (e) {
+                console.warn("Cloud transactions read failed:", e);
             }
         }
 
@@ -1001,6 +1034,8 @@
             }
             if (txnsList) {
                 localStorage.setItem("aviator_txns", JSON.stringify(txnsList));
+                // Asynchronously sync local changes to cloud
+                syncTransactionsToCloud();
             }
             if (ticketsList) {
                 localStorage.setItem("aviator_support_tickets", JSON.stringify(ticketsList));
@@ -1519,6 +1554,7 @@
         // Initial launch
         updateUI();
         syncDatabaseFromCloud();
+        syncTransactionsFromCloud();
     </script>
 </body>
 </html>
