@@ -208,8 +208,8 @@
                 <h2 style="font-family:var(--font-heading); font-size:16px; font-weight:700; margin-bottom:12px">Edit / Modify Pilot Account</h2>
                 <form id="edit-user-form" onsubmit="saveUserModification(event)" class="form-row">
                     <div class="input-group">
-                        <label>Target Email</label>
-                        <input type="email" id="edit-email" class="input-field" placeholder="Select player to manage..." required readonly>
+                        <label>Target Email (Editable)</label>
+                        <input type="email" id="edit-email" class="input-field" placeholder="Choose player to manage or edit..." required>
                     </div>
                     <div class="input-group">
                         <label>Nickname</label>
@@ -464,6 +464,7 @@
         }
 
         function selectUserToManage(email) {
+            window.currentlyEditingEmail = email;
             const dbUsers = JSON.parse(localStorage.getItem('aviator_db_users')) || [];
             const user = dbUsers.find(u => u.email === email);
             if (user) {
@@ -525,7 +526,7 @@
 
         function saveUserModification(e) {
             e.preventDefault();
-            const email = document.getElementById('edit-email').value;
+            const email = document.getElementById('edit-email').value.trim();
             const nickname = document.getElementById('edit-nickname').value.trim();
             const phone = document.getElementById('edit-phone').value.trim();
             const balance = parseFloat(document.getElementById('edit-balance').value);
@@ -535,9 +536,40 @@
             const bankDetails = document.getElementById('edit-bank').value.trim();
             
             const dbUsers = JSON.parse(localStorage.getItem('aviator_db_users')) || [];
-            const idx = dbUsers.findIndex(u => u.email === email);
+            const origEmail = window.currentlyEditingEmail || email;
+            const idx = dbUsers.findIndex(u => u.email.toLowerCase() === origEmail.toLowerCase());
             
             if (idx !== -1) {
+                // If email has changed, cascade updates to all associated tickets & txns!
+                if (origEmail.toLowerCase() !== email.toLowerCase()) {
+                    let tickets = JSON.parse(localStorage.getItem('aviator_tickets')) || [];
+                    tickets.forEach(t => {
+                        if (t.email.toLowerCase() === origEmail.toLowerCase()) {
+                            t.email = email;
+                        }
+                    });
+                    localStorage.setItem('aviator_tickets', JSON.stringify(tickets));
+                    
+                    let txns = JSON.parse(localStorage.getItem('aviator_txns')) || [];
+                    txns.forEach(t => {
+                        if (t.email.toLowerCase() === origEmail.toLowerCase()) {
+                            t.email = email;
+                        }
+                    });
+                    localStorage.setItem('aviator_txns', JSON.stringify(txns));
+                    
+                    const activeEmail = localStorage.getItem('aviator_session');
+                    if (activeEmail && activeEmail.toLowerCase() === origEmail.toLowerCase()) {
+                        localStorage.setItem('aviator_session', email);
+                        const sessionUser = JSON.parse(localStorage.getItem('aviator_user'));
+                        if (sessionUser) {
+                            sessionUser.email = email;
+                            localStorage.setItem('aviator_user', JSON.stringify(sessionUser));
+                        }
+                    }
+                }
+                
+                dbUsers[idx].email = email;
                 dbUsers[idx].nickname = nickname;
                 dbUsers[idx].phone = phone;
                 dbUsers[idx].balance = balance;
@@ -549,33 +581,37 @@
                 localStorage.setItem('aviator_db_users', JSON.stringify(dbUsers));
                 showToast("Success", "Pilot account profile updated.", "success");
                 
-                // Clear inputs
                 document.getElementById('edit-user-form').reset();
                 updateStatusSelection('ACTIVE');
+                window.currentlyEditingEmail = null;
                 renderAllData();
+            } else {
+                showToast("Error", "Selected pilot account not found.", "error");
             }
         }
 
         function deleteUserAccount() {
             const email = document.getElementById('edit-email').value;
-            if (!email) {
+            const targetEmail = window.currentlyEditingEmail || email;
+            if (!targetEmail) {
                 showToast("Action Failed", "Please select a pilot account first.", "error");
                 return;
             }
             
-            if (confirm(`Are you sure you want to permanently delete player ${email}?`)) {
+            if (confirm(`Are you sure you want to permanently delete player ${targetEmail}?`)) {
                 let dbUsers = JSON.parse(localStorage.getItem('aviator_db_users')) || [];
-                dbUsers = dbUsers.filter(u => u.email !== email);
+                dbUsers = dbUsers.filter(u => u.email.toLowerCase() !== targetEmail.toLowerCase());
                 localStorage.setItem('aviator_db_users', JSON.stringify(dbUsers));
                 
                 // Prune tickets
                 let tickets = JSON.parse(localStorage.getItem('aviator_tickets')) || [];
-                tickets = tickets.filter(t => t.email !== email);
+                tickets = tickets.filter(t => t.email.toLowerCase() !== targetEmail.toLowerCase());
                 localStorage.setItem('aviator_tickets', JSON.stringify(tickets));
                 
                 showToast("Account Deleted", "Pilot account registry wiped.", "success");
                 document.getElementById('edit-user-form').reset();
                 updateStatusSelection('ACTIVE');
+                window.currentlyEditingEmail = null;
                 renderAllData();
             }
         }
