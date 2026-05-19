@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Aviator - Ground Control Dashboard</title>
-    <!-- Real-time Cloud DB Syncer -->
-    <script src="db-sync.js"></script>
     <link rel="stylesheet" href="styles.css">
     <style>
         body.admin-body {
@@ -363,26 +361,7 @@
     </div>
 
     <script>
-        // Check session and mobile restriction
-        const isMobileDevice = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) || window.innerWidth < 1024;
-        if (isMobileDevice) {
-            document.write(`
-                <div style="position:fixed; top:0; left:0; width:100vw; height:100vh; background:#090a0f; z-index:200000; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:'Outfit',sans-serif; color:#ffffff; padding: 24px; text-align: center;">
-                    <svg width="64" height="64" viewBox="0 0 24 24" style="fill: #e50914; margin-bottom: 24px; filter: drop-shadow(0 0 10px rgba(229,9,20,0.6));">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-                    </svg>
-                    <h1 style="font-weight:900; font-size:22px; letter-spacing:1.5px; margin-bottom:12px; color: #e50914; text-transform: uppercase;">Command Access Blocked</h1>
-                    <p style="font-size:13px; color:rgba(255,255,255,0.7); max-width:320px; line-height:1.6; margin-bottom:24px;">
-                        Access to the Flight Command Dashboard is strictly prohibited on mobile devices. Please log in from a secure computer terminal.
-                    </p>
-                    <button onclick="window.location.href='index.html'" style="background:#e50914; color:#ffffff; border:none; padding:12px 24px; font-weight:800; border-radius:8px; font-size:12px; text-transform:uppercase; cursor:pointer; letter-spacing:0.5px; box-shadow:0 0 12px rgba(229, 9, 20, 0.4);">
-                        Return to Cockpit
-                    </button>
-                </div>
-            `);
-            window.stop();
-        }
-
+        // Check session
         let activeUser = null;
         const savedSession = localStorage.getItem('aviator_user');
         if (!savedSession) {

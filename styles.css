@@ -1099,14 +1099,6 @@ input:checked + .slider:before {
         gap: 8px;
     }
 
-    .side-header-tabs {
-        display: none !important;
-    }
-    
-    .side-tab-dropdown-container {
-        display: block !important;
-    }
-
     .canvas-panel {
         height: 28vh;
         min-height: 160px;

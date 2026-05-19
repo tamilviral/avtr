@@ -1055,22 +1055,16 @@
     // 9. COCKPIT INTERACTION & INTERACTIVE TABS
     // -------------------------------------------------------------
     function setupAppNavigation() {
-        // Tab Pane switches (All Bets, My Bets, History, Chat)
-        const tabs = document.querySelectorAll('.side-header-tabs .side-tab');
-        tabs.forEach(tab => {
-            tab.onclick = () => {
-                tabs.forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-
-                const target = tab.dataset.target;
+        // Tab Pane switches dropdown selector (All Bets, My Bets, History, Chat)
+        const sideSelector = document.getElementById('sidePaneSelector');
+        if (sideSelector) {
+            sideSelector.onchange = (e) => {
+                const target = e.target.value;
                 const panes = document.querySelectorAll('.side-content .pane');
                 panes.forEach(pane => pane.classList.remove('active'));
                 document.getElementById(target).classList.add('active');
-
-                const selector = document.getElementById('sidePaneSelector');
-                if (selector) selector.value = target;
             };
-        });
+        }
 
         // Profile dialog internal tabs navigation
         const sideBtns = document.querySelectorAll('.profile-sidebar .profile-side-btn');
@@ -1365,21 +1359,6 @@
         setTimeout(() => {
             window.location.href = "login.html";
         }, 2500);
-    };
-
-    window.switchSidePaneFromDropdown = function(targetId) {
-        const panes = document.querySelectorAll('.side-content .pane');
-        panes.forEach(pane => pane.classList.remove('active'));
-        document.getElementById(targetId).classList.add('active');
-        
-        const tabs = document.querySelectorAll('.side-header-tabs .side-tab');
-        tabs.forEach(tab => {
-            if (tab.dataset.target === targetId) {
-                tab.classList.add('active');
-            } else {
-                tab.classList.remove('active');
-            }
-        });
     };
 
     // -------------------------------------------------------------

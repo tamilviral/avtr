@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Aviator Cockpit - Real-Money Crash Game</title>
-    <!-- Real-time Cloud DB Syncer -->
-    <script src="db-sync.js"></script>
     
     <!-- Design System Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -200,21 +198,17 @@
 
             <!-- Right Side Workspace (Live Multiplayer Leaderboard & Chat) -->
             <div class="side-panel">
-                <div class="side-header-tabs">
-                    <div class="side-tab active" data-target="allBetsPane">All Bets</div>
-                    <div class="side-tab" data-target="myBetsPane">My Bets</div>
-                    <div class="side-tab" data-target="historyPane">History</div>
-                    <div class="side-tab" data-target="chatPane">Chat</div>
-                </div>
-
-                <!-- Dropdown selector for mobile / responsive screen panes -->
-                <div class="side-tab-dropdown-container" style="padding: 10px; border-bottom: 1px solid var(--border-color); display: none;">
-                    <select id="sidePaneSelector" class="input-field" style="height: 38px; padding: 4px 10px; font-weight: 700; background: rgba(0, 0, 0, 0.4); border: 1px solid var(--border-color); color: #ffffff; border-radius: 8px; width: 100%; font-size: 13px;" onchange="switchSidePaneFromDropdown(this.value)">
-                        <option value="allBetsPane">✈️ All Bets Lobby</option>
-                        <option value="myBetsPane">👤 My Bets History</option>
-                        <option value="historyPane">📊 Flight Rounds History</option>
-                        <option value="chatPane">💬 Live Chat Lobby</option>
-                    </select>
+                <div class="side-header-tabs" style="display: flex; gap: 8px; align-items: center; justify-content: space-between; padding: 10px 14px; background: rgba(0,0,0,0.15); border-bottom: 1px solid var(--border-color);">
+                    <!-- Dropdown Select Menu -->
+                    <div style="position: relative; flex: 1; display: flex; align-items: center;">
+                        <select id="sidePaneSelector" style="background: rgba(255, 255, 255, 0.04); color: #ffffff; border: 1px solid var(--border-color); padding: 8px 36px 8px 12px; border-radius: 8px; width: 100%; font-size: 12px; font-weight: 700; font-family: var(--font-sans); cursor: pointer; outline: none; appearance: none; -webkit-appearance: none; transition: background 0.2s ease;">
+                            <option value="allBetsPane" style="background: var(--bg-panel); color: #fff;">👥 All Bets Lobby</option>
+                            <option value="myBetsPane" style="background: var(--bg-panel); color: #fff;">✈️ My Bets Registry</option>
+                            <option value="historyPane" style="background: var(--bg-panel); color: #fff;">📊 Flight Multiplier History</option>
+                            <option value="chatPane" style="background: var(--bg-panel); color: #fff;">💬 Live Pilot Chat</option>
+                        </select>
+                        <i data-lucide="chevron-down" style="position: absolute; right: 12px; width: 14px; height: 14px; pointer-events: none; opacity: 0.6; color: #fff;"></i>
+                    </div>
                 </div>
 
                 <div class="side-content">
