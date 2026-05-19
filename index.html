@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Aviator Cockpit - Real-Money Crash Game</title>
+    
+    <!-- Design System Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#090a0f">
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <!-- App Top Header -->
+        <header class="app-header">
+            <div class="brand" id="headerLogoBtn">
+                <svg class="brand-logo" width="28" height="28" viewBox="0 0 24 24">
+                    <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L14 19v-5.5l8 2.5z"/>
+                </svg>
+                <span class="brand-name">AVIATOR</span>
+            </div>
+            
+            <div class="header-right">
+                <div class="provably-fair" id="provablyFairBtn">
+                    <i data-lucide="shield-check" style="width: 14px; height: 14px;"></i>
+                    <span>Provably Fair</span>
+                </div>
+                
+                <div class="provably-fair" style="color: var(--accent-green);" id="depositTriggerBtn">
+                    <span class="wallet-balance">₹<span id="playerBalance">0.00</span></span>
+                    <button class="btn-deposit">Deposit</button>
+                </div>
+                
+                <div class="user-profile-badge" id="profileTriggerBtn">
+                    <i data-lucide="user" style="width: 16px; height: 16px; color: var(--text-grey);"></i>
+                </div>
+            </div>
+        </header>
+
+        <!-- Top Past Multipliers History Strip -->
+        <div class="history-strip" id="historyStrip">
+            <!-- Dynamically populated via JS -->
+            <div class="history-pill">1.05x</div>
+            <div class="history-pill mid">2.44x</div>
+            <div class="history-pill high">12.50x</div>
+            <div class="history-pill">1.18x</div>
+            <div class="history-pill">1.00x</div>
+        </div>
+
+        <!-- Main Workplace Grid -->
+        <div class="game-workspace">
+            
+            <!-- Left Side Column (Canvas + Bets) -->
+            <div class="main-column">
+                
+                <!-- HTML5 Canvas Flight Plot -->
+                <div class="canvas-panel">
+                    <canvas id="flightCanvas"></canvas>
+                    
+                    <!-- HUD Displays (Countdown, Multiplier, Crash Notification) -->
+                    <div class="canvas-overlay-hud" id="hudOverlay">
+                        <!-- Lobby Stage -->
+                        <div class="countdown-label" id="lobbyLabel" style="display: none;">Next Round In</div>
+                        <div class="countdown-timer" id="lobbyTimer" style="display: none;">5.0</div>
+                        
+                        <!-- Flying Stage -->
+                        <div class="multiplier-meter" id="flyMultiplier">1.00x</div>
+                        
+                        <!-- Crashed Stage -->
+                        <div class="multiplier-meter crashed" id="crashLabel" style="display: none;">FLEW AWAY!</div>
+                    </div>
+                </div>
+
+                <!-- Double Independent Betting Controls -->
+                <div class="bet-controls-wrapper">
+                    
+                    <!-- Bet Control Card 1 -->
+                    <div class="bet-card" id="betCard1">
+                        <div class="bet-card-header">
+                            <div class="bet-tabs">
+                                <div class="bet-tab active" data-mode="manual">Bet</div>
+                                <div class="bet-tab" data-mode="auto">Auto</div>
+                            </div>
+                            
+                            <!-- Auto Bets Expand Toggle -->
+                            <div class="auto-toggle-group" style="display: none;" id="autoToggle1">
+                                <span style="font-size: 10px; font-weight: 700; color: var(--text-grey);">Auto Bet</span>
+                                <label class="switch">
+                                    <input type="checkbox" id="autoBetCheck1">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Amount Select and Action Button Panel -->
+                        <div class="bet-inputs-row">
+                            <div class="amount-controller">
+                                <button class="adjust-btn minus">-</button>
+                                <input type="number" class="amount-input" value="100" min="10" max="10000" step="10">
+                                <button class="adjust-btn plus">+</button>
+                            </div>
+                            
+                            <button class="btn-action-bet" id="actionBtn1">
+                                <span class="btn-amount-label">BET</span>
+                                <span class="btn-sub-label">₹100.00 INR</span>
+                            </button>
+                        </div>
+
+                        <!-- Quick Increment Buttons -->
+                        <div class="quick-select-grid">
+                            <button class="quick-btn" data-val="100">₹100</button>
+                            <button class="quick-btn" data-val="500">₹500</button>
+                            <button class="quick-btn" data-val="1000">₹1000</button>
+                            <button class="quick-btn" data-val="5000">₹5000</button>
+                        </div>
+
+                        <!-- Auto Cashout Parameters -->
+                        <div class="auto-drawer" id="autoDrawer1">
+                            <div class="auto-toggle-group">
+                                <span style="font-size: 10px; font-weight: 700; color: var(--text-grey);">Auto Cash Out</span>
+                                <label class="switch">
+                                    <input type="checkbox" id="autoCashCheck1">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <input type="number" class="input-field" id="autoCashVal1" value="1.50" min="1.01" max="100" step="0.01" style="height: 32px; padding: 4px 8px; font-size: 12px; font-weight: 700; text-align: center;">
+                        </div>
+                    </div>
+
+                    <!-- Bet Control Card 2 -->
+                    <div class="bet-card" id="betCard2">
+                        <div class="bet-card-header">
+                            <div class="bet-tabs">
+                                <div class="bet-tab active" data-mode="manual">Bet</div>
+                                <div class="bet-tab" data-mode="auto">Auto</div>
+                            </div>
+                            
+                            <!-- Auto Bets Expand Toggle -->
+                            <div class="auto-toggle-group" style="display: none;" id="autoToggle2">
+                                <span style="font-size: 10px; font-weight: 700; color: var(--text-grey);">Auto Bet</span>
+                                <label class="switch">
+                                    <input type="checkbox" id="autoBetCheck2">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Amount Select and Action Button Panel -->
+                        <div class="bet-inputs-row">
+                            <div class="amount-controller">
+                                <button class="adjust-btn minus">-</button>
+                                <input type="number" class="amount-input" value="100" min="10" max="10000" step="10">
+                                <button class="adjust-btn plus">+</button>
+                            </div>
+                            
+                            <button class="btn-action-bet" id="actionBtn2">
+                                <span class="btn-amount-label">BET</span>
+                                <span class="btn-sub-label">₹100.00 INR</span>
+                            </button>
+                        </div>
+
+                        <!-- Quick Increment Buttons -->
+                        <div class="quick-select-grid">
+                            <button class="quick-btn" data-val="100">₹100</button>
+                            <button class="quick-btn" data-val="500">₹500</button>
+                            <button class="quick-btn" data-val="1000">₹1000</button>
+                            <button class="quick-btn" data-val="5000">₹5000</button>
+                        </div>
+
+                        <!-- Auto Cashout Parameters -->
+                        <div class="auto-drawer" id="autoDrawer2">
+                            <div class="auto-toggle-group">
+                                <span style="font-size: 10px; font-weight: 700; color: var(--text-grey);">Auto Cash Out</span>
+                                <label class="switch">
+                                    <input type="checkbox" id="autoCashCheck2">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <input type="number" class="input-field" id="autoCashVal2" value="2.00" min="1.01" max="100" step="0.01" style="height: 32px; padding: 4px 8px; font-size: 12px; font-weight: 700; text-align: center;">
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Right Side Workspace (Live Multiplayer Leaderboard & Chat) -->
+            <div class="side-panel">
+                <div class="side-header-tabs">
+                    <div class="side-tab active" data-target="allBetsPane">All Bets</div>
+                    <div class="side-tab" data-target="myBetsPane">My Bets</div>
+                    <div class="side-tab" data-target="historyPane">History</div>
+                    <div class="side-tab" data-target="chatPane">Chat</div>
+                </div>
+
+                <div class="side-content">
+                    
+                    <!-- Pane: All Active Lobby Bets -->
+                    <div class="pane active" id="allBetsPane">
+                        <div class="lobby-stats-strip">
+                            <span>All Pilots: <span id="lobbyCountText">30</span></span>
+                            <span>Total Money: ₹<span id="lobbyTotalWagerText">0.00</span></span>
+                        </div>
+                        <div class="list-scroll" id="allBetsList">
+                            <!-- Populated dynamically with pilot bots -->
+                        </div>
+                    </div>
+
+                    <!-- Pane: Personal Player Bets -->
+                    <div class="pane" id="myBetsPane">
+                        <div class="list-scroll" id="myBetsList">
+                            <!-- Personal rounds history -->
+                        </div>
+                    </div>
+
+                    <!-- Pane: Game Rounds History -->
+                    <div class="pane" id="historyPane">
+                        <div class="list-scroll" id="historyList">
+                            <!-- Multipliers list -->
+                        </div>
+                    </div>
+
+                    <!-- Pane: Live Chat Lobby Room -->
+                    <div class="pane" id="chatPane">
+                        <div class="chat-container">
+                            <div class="chat-messages" id="chatMsgContainer">
+                                <div class="chat-msg system">
+                                    Welcome to the <strong>Aviator Chatroom</strong>! Keep it friendly and fly high.
+                                </div>
+                            </div>
+                            <form class="chat-footer-form" id="chatForm">
+                                <input type="text" class="chat-input" id="chatInput" placeholder="Message chatroom..." required>
+                                <button type="submit" class="chat-send-btn">
+                                    <i data-lucide="send" style="width: 14px; height: 14px;"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Float Ticket Support Icon -->
+        <div class="helpdesk-bubble" id="supportBubbleBtn" title="Help & Support Desk">
+            <i data-lucide="message-square" style="width: 22px; height: 22px; color: #ffffff;"></i>
+        </div>
+
+        <!-- ==========================================
+             MODALS SYSTEM
+             ========================================== -->
+
+        <!-- 1. Frosted User Profile / Ledger iOS Overlay Modal -->
+        <div class="modal-overlay" id="profileModal">
+            <div class="glass-panel profile-wrapper">
+                
+                <div class="profile-sidebar">
+                    <div class="profile-side-btn active" data-pane="paneAccount">
+                        <i data-lucide="user-check" style="width: 16px; height: 16px;"></i>
+                        <span>Account details</span>
+                    </div>
+                    <div class="profile-side-btn" data-pane="paneDeposits">
+                        <i data-lucide="wallet" style="width: 16px; height: 16px;"></i>
+                        <span>Deposits ledger</span>
+                    </div>
+                    <div class="profile-side-btn" data-pane="paneWithdrawals">
+                        <i data-lucide="banknote" style="width: 16px; height: 16px;"></i>
+                        <span>Withdrawals</span>
+                    </div>
+                    <div class="profile-side-btn" style="color: var(--accent-red); margin-top: auto;" id="logoutBtn">
+                        <i data-lucide="log-out" style="width: 16px; height: 16px;"></i>
+                        <span>Log Out</span>
+                    </div>
+                </div>
+
+                <div class="profile-pane-container">
+                    <button class="close-modal-btn" onclick="closeModal('profileModal')">
+                        <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+                    </button>
+
+                    <!-- Pane Account details -->
+                    <div class="profile-pane active" id="paneAccount">
+                        <div class="pane-title">Pilot Registration Info</div>
+                        <div style="display: flex; flex-direction: column; gap: 14px;">
+                            <div class="input-group">
+                                <label>Pilot Identity Email</label>
+                                <input type="text" class="input-field" id="profileEmail" readonly>
+                            </div>
+                            <div class="input-group">
+                                <label style="display:flex; justify-content:space-between; align-items:center; width:100%">
+                                    <span>Phone Coordinates</span>
+                                    <span id="phoneVerifyBadge" style="font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 4px;"></span>
+                                </label>
+                                <div style="display:flex; gap:8px; width:100%">
+                                    <input type="text" class="input-field" id="profilePhone" readonly style="flex:1">
+                                    <button type="button" id="btnVerifyPhone" class="btn-action approve" style="display:none; padding: 0 12px; font-size: 11px; height: 38px; border-radius: 8px; font-weight:800; cursor:pointer;" onclick="triggerPhoneVerification()">Verify</button>
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label>Registered Commission Timestamp</label>
+                                <input type="text" class="input-field" id="profileJoinDate" readonly>
+                            </div>
+                            
+                            <div class="input-group">
+                                <label>Stored UPI VPA (for fast wagers cashout)</label>
+                                <input type="text" class="input-field" id="profileUPI" placeholder="e.g. pilot@upi">
+                            </div>
+                            <div class="input-group">
+                                <label>Stored Bank Acc & IFSC Details</label>
+                                <input type="text" class="input-field" id="profileBank" placeholder="e.g. HDFC 50100..., IFSC: HDFC0000123">
+                            </div>
+                            <button type="button" class="submit-btn" style="background: var(--accent-red); color: #fff; box-shadow: 0 4px 12px var(--accent-red-glow); margin-top: 4px;" onclick="savePilotStoredPaymentInfo()">
+                                Save Payout Accounts
+                            </button>
+                            
+                            <div style="margin-top: 10px;">
+                                <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px;">Pilot Stats Dashboard</div>
+                                <div class="stats-grid">
+                                    <div class="stat-box">
+                                        <span class="num" id="statRoundsCount">0</span>
+                                        <span class="title">Total Flights</span>
+                                    </div>
+                                    <div class="stat-box">
+                                        <span class="num" id="statHighestMulti">1.00x</span>
+                                        <span class="title">High Multiplier</span>
+                                    </div>
+                                    <div class="stat-box">
+                                        <span class="num" id="statTotalWins">₹0.00</span>
+                                        <span class="title">Net Profits</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pane Deposits Ledger -->
+                    <div class="profile-pane" id="paneDeposits">
+                        <div class="pane-title">Deposit Ledger</div>
+                        <div style="max-height: 280px; overflow-y: auto;">
+                            <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
+                                <thead>
+                                    <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-muted);">
+                                        <th style="padding: 8px;">Order Reference</th>
+                                        <th style="padding: 8px;">Wager Amount</th>
+                                        <th style="padding: 8px;">Status</th>
+                                        <th style="padding: 8px;">Logged At</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="depositTableBody">
+                                    <!-- Populated via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Pane Withdrawals -->
+                    <div class="profile-pane" id="paneWithdrawals">
+                        <div class="pane-title">Request Cash Out Payout</div>
+                        <form id="withdrawalForm" style="display: flex; flex-direction: column; gap: 14px;">
+                            <div class="input-group">
+                                <label>Wallet Balance Available</label>
+                                <div style="font-size: 24px; font-weight: 800; color: var(--accent-green); font-family: var(--font-heading);">
+                                    ₹<span id="withdrawAvailableBal">0.00</span>
+                                </div>
+                            </div>
+                            <style>
+                                .payout-method-toggle {
+                                    display: flex;
+                                    background: rgba(0, 0, 0, 0.25);
+                                    padding: 4px;
+                                    border-radius: 8px;
+                                    border: 1px solid var(--border-color);
+                                    gap: 4px;
+                                    width: 100%;
+                                    margin-bottom: 6px;
+                                }
+                                .payout-btn {
+                                    flex: 1;
+                                    height: 30px;
+                                    border-radius: 6px;
+                                    border: none;
+                                    background: transparent;
+                                    color: rgba(255, 255, 255, 0.5);
+                                    font-size: 11px;
+                                    font-weight: 800;
+                                    cursor: pointer;
+                                    text-align: center;
+                                    transition: all 0.2s ease;
+                                }
+                                .payout-btn.active {
+                                    background: var(--accent-green);
+                                    color: #000000;
+                                    box-shadow: 0 0 10px var(--accent-green-glow);
+                                }
+                            </style>
+                            
+                            <div class="input-group">
+                                <label>Preferred Payout Method</label>
+                                <div class="payout-method-toggle">
+                                    <button type="button" id="payout-opt-upi" class="payout-btn active" onclick="setWithdrawMethod('UPI')">UPI Address</button>
+                                    <button type="button" id="payout-opt-bank" class="payout-btn" onclick="setWithdrawMethod('BANK')">Bank Account</button>
+                                </div>
+                                <input type="hidden" id="withdrawalMethod" value="UPI">
+                            </div>
+
+                            <!-- UPI Input Container -->
+                            <div class="input-group" id="withdrawalUPIContainer">
+                                <label>Receiver UPI VPA Account</label>
+                                <input type="text" class="input-field" placeholder="e.g. pilot@upi" id="withdrawalUPI" required>
+                            </div>
+
+                            <!-- Bank Details Input Container -->
+                            <div id="withdrawalBankContainer" style="display: none; flex-direction: column; gap: 14px;">
+                                <div class="input-group">
+                                    <label>Bank Name & Account Number</label>
+                                    <input type="text" class="input-field" placeholder="e.g. HDFC Bank, A/C: 50100223344" id="withdrawalBankAcc">
+                                </div>
+                                <div class="input-group">
+                                    <label>IFSC Code</label>
+                                    <input type="text" class="input-field" placeholder="e.g. HDFC0000123" id="withdrawalIFSC">
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label>Cash Out Amount (₹)</label>
+                                <input type="number" class="input-field" min="100" max="50000" value="500" required id="withdrawalAmount">
+                            </div>
+                            <button type="submit" class="submit-btn" style="background: var(--accent-green); color: #000; box-shadow: 0 4px 12px var(--accent-green-glow);">
+                                Request Bank Payout Withdrawal
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Provably Fair Modal -->
+        <div class="modal-overlay" id="provablyFairModal">
+            <div class="glass-panel" style="width: 450px; padding: 24px; position: relative;">
+                <button class="close-modal-btn" onclick="closeModal('provablyFairModal')">
+                    <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+                </button>
+                <div class="pane-title" style="margin-bottom: 12px;">Provably Fair Cryptographic Algorithm</div>
+                <div style="font-size: 12px; line-height: 1.6; color: var(--text-grey); display: flex; flex-direction: column; gap: 12px;">
+                    <p>
+                        Aviator operates on a <strong>Provably Fair SHA-256 seed sequence</strong>. The crash multipliers are calculated deterministically relative to system milliseconds synchronized across all connected users.
+                    </p>
+                    <div class="input-group">
+                        <label>Active Round Client Server Seed Hash</label>
+                        <input type="text" class="input-field" id="pfRoundSeed" readonly style="font-family: monospace; font-size: 11px;">
+                    </div>
+                    <div class="input-group">
+                        <label>Active Server Generated Epoch Offset</label>
+                        <input type="text" class="input-field" id="pfEpochOffset" readonly style="font-family: monospace; font-size: 11px;">
+                    </div>
+                    <p style="font-size: 10px; color: var(--text-muted); font-style: italic;">
+                        Both variables match in lockstep with our ground control server to verify game fairness.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- OTP Verification Modal -->
+        <div class="modal-overlay" id="otpModal">
+            <div class="glass-panel" style="width: 320px; padding: 24px; position: relative; text-align: center;">
+                <button class="close-modal-btn" onclick="closeModal('otpModal')">
+                    <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+                </button>
+                <div class="pane-title" style="margin-bottom: 8px;">OTP SECURITY SECURE GATES</div>
+                <div style="font-size: 12px; color: var(--text-grey); margin-bottom: 16px; line-height: 1.4;">
+                    We have transmitted a secure 6-digit OTP verification code to your phone coordinates.
+                </div>
+                <div class="input-group" style="margin-bottom: 16px;">
+                    <input type="text" class="input-field" id="otpInputField" placeholder="• • • • • •" maxlength="6" style="text-align: center; font-size: 24px; letter-spacing: 6px; font-weight: 800; font-family: monospace;">
+                </div>
+                <button type="button" class="submit-btn" style="background: var(--accent-green); color: #000; box-shadow: 0 4px 12px var(--accent-green-glow); width: 100%;" onclick="submitOtpVerification()">
+                    Verify Credentials
+                </button>
+                <div style="font-size: 10px; color: var(--text-muted); margin-top: 12px; cursor: pointer;" onclick="resendOtpCode()">
+                    Didn't receive OTP? <strong style="color: var(--accent-green)">Resend Code</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Radial Radar Logout Overlay -->
+        <div class="logout-overlay" id="logoutOverlay">
+            <div class="radar-spinner"></div>
+            <div style="font-family: var(--font-heading); font-weight: 800; font-size: 18px; letter-spacing: 0.5px;">DE-AUTHORIZING PILOT STATUS</div>
+            <div style="color: var(--text-muted); font-size: 12px; margin-top: 4px;">Closing session sync gates...</div>
+        </div>
+
+        <!-- Toast Containers System -->
+        <div id="toast-container"></div>
+
+    </div>
+
+    <!-- Script imports -->
+    <script src="app.js"></script>
+    <script>
+        // Init Lucide
+        lucide.createIcons();
+    </script>
+</body>
+</html>

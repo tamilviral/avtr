@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pilot Authorization Gateway - Aviator</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Outfit:wght@800;900&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        :root {
+            --bg-primary: #090a0f;
+            --bg-panel: #12141d;
+            --accent-red: #e50914;
+            --accent-red-glow: rgba(229, 9, 20, 0.4);
+            --accent-green: #22c55e;
+            --accent-green-glow: rgba(34, 197, 94, 0.4);
+            --text-white: #ffffff;
+            --text-grey: rgba(255, 255, 255, 0.6);
+            --text-muted: rgba(255, 255, 255, 0.35);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --font-sans: 'Inter', sans-serif;
+            --font-heading: 'Outfit', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: var(--font-sans);
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-white);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            padding: 20px;
+        }
+
+        .auth-container {
+            width: 420px;
+            max-width: 100%;
+            background: rgba(18, 20, 29, 0.8);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 32px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            position: relative;
+            animation: modal-spring-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .brand-logo-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 28px;
+        }
+
+        .logo-svg {
+            fill: var(--accent-red);
+            filter: drop-shadow(0 0 6px var(--accent-red-glow));
+            animation: plane-hover 2.5s ease-in-out infinite;
+        }
+
+        .brand-name {
+            font-family: var(--font-heading);
+            font-size: 26px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            color: var(--text-white);
+        }
+
+        .auth-toggle {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            background: rgba(0,0,0,0.25);
+            padding: 4px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            border: 1px solid var(--border-color);
+        }
+
+        .toggle-btn {
+            padding: 10px 0;
+            border-radius: 8px;
+            border: none;
+            background: transparent;
+            color: var(--text-grey);
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            transition: 0.2s ease;
+        }
+
+        .toggle-btn.active {
+            background: var(--bg-panel);
+            color: #ffffff;
+            border: 1px solid var(--border-color);
+        }
+
+        .auth-form {
+            display: none;
+            flex-direction: column;
+            gap: 16px;
+            animation: fade-slide 0.3s ease-out;
+        }
+
+        .auth-form.active {
+            display: flex;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .input-group label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            left: 14px;
+            color: var(--text-muted);
+        }
+
+        .input-field {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px 14px 12px 42px;
+            color: #ffffff;
+            font-size: 13px;
+            width: 100%;
+            transition: 0.2s ease;
+        }
+
+        .input-field:focus {
+            border-color: var(--accent-red);
+            background: rgba(229, 9, 20, 0.02);
+            box-shadow: 0 0 10px rgba(229, 9, 20, 0.15);
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: var(--accent-red);
+            color: #ffffff;
+            border: none;
+            border-radius: 12px;
+            padding: 14px;
+            font-family: var(--font-heading);
+            font-weight: 800;
+            font-size: 14px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px var(--accent-red-glow);
+            transition: 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .submit-btn:hover {
+            box-shadow: 0 6px 20px var(--accent-red);
+            transform: translateY(-1px);
+        }
+
+        /* Alert notifications */
+        .alert-box {
+            display: none;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 12px;
+            line-height: 1.4;
+            margin-bottom: 18px;
+            animation: slide-down 0.2s ease-out;
+        }
+
+        .alert-box.error {
+            background: rgba(198, 40, 40, 0.12);
+            border: 1px solid rgba(198, 40, 40, 0.25);
+            color: #ff5252;
+            display: block;
+        }
+
+        .alert-box.success {
+            background: rgba(34, 197, 94, 0.12);
+            border: 1px solid rgba(34, 197, 94, 0.25);
+            color: var(--accent-green);
+            display: block;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.2);
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes plane-hover {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-4px) rotate(1.5deg); }
+        }
+
+        @keyframes modal-spring-in {
+            from { opacity: 0; transform: scale(0.9) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        @keyframes fade-slide {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slide-down {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="auth-container">
+        
+        <div class="brand-logo-header">
+            <svg class="logo-svg" width="40" height="40" viewBox="0 0 24 24">
+                <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L14 19v-5.5l8 2.5z"/>
+            </svg>
+            <span class="brand-name">AVIATOR COCKPIT</span>
+        </div>
+
+        <div class="auth-toggle">
+            <button class="toggle-btn active" id="btnToggleLogin">Sign In</button>
+            <button class="toggle-btn" id="btnToggleRegister">Pilot Register</button>
+        </div>
+
+        <!-- System Alerts -->
+        <div class="alert-box" id="authAlert"></div>
+
+        <!-- 1. SIGN IN FORM -->
+        <form class="auth-form active" id="loginForm">
+            <div class="input-group">
+                <label>Pilot Email or Phone</label>
+                <div class="input-wrapper">
+                    <i data-lucide="user" style="width: 16px; height: 16px;"></i>
+                    <input type="text" class="input-field" placeholder="pilot@aviator.com or phone" required id="loginId">
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <label>Access Password</label>
+                <div class="input-wrapper">
+                    <i data-lucide="lock" style="width: 16px; height: 16px;"></i>
+                    <input type="password" class="input-field" placeholder="••••••••" required id="loginPassword">
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn">
+                <span>AUTHORIZE ACCESS</span>
+                <div class="spinner" id="loginSpinner"></div>
+            </button>
+        </form>
+
+        <!-- 2. PILOT REGISTER FORM -->
+        <form class="auth-form" id="registerForm">
+            <div class="input-group">
+                <label>Pilot Email Address</label>
+                <div class="input-wrapper">
+                    <i data-lucide="mail" style="width: 16px; height: 16px;"></i>
+                    <input type="email" class="input-field" placeholder="e.g. fly@aviator.com" required id="regEmail">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Mobile Number Coordinates</label>
+                <div class="input-wrapper">
+                    <i data-lucide="phone" style="width: 16px; height: 16px;"></i>
+                    <input type="tel" class="input-field" placeholder="e.g. 9876543210" required id="regPhone" pattern="[0-9]{10}">
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <label>Create Secret Password</label>
+                <div class="input-wrapper">
+                    <i data-lucide="lock" style="width: 16px; height: 16px;"></i>
+                    <input type="password" class="input-field" placeholder="Min 6 characters" required id="regPassword" minlength="6">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Confirm Password</label>
+                <div class="input-wrapper">
+                    <i data-lucide="shield-check" style="width: 16px; height: 16px;"></i>
+                    <input type="password" class="input-field" placeholder="••••••••" required id="regConfirmPassword" minlength="6">
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn" style="background: var(--accent-green); color: #000; box-shadow: 0 4px 15px var(--accent-green-glow);">
+                <span>CREATE ACCOUNT + ₹500 BONUS</span>
+                <div class="spinner" id="regSpinner"></div>
+            </button>
+        </form>
+
+    </div>
+
+    <script>
+        // Init Database pre-seeds
+        function preseedDb() {
+            if (!localStorage.getItem('aviator_db_users')) {
+                const defaultUser = {
+                    email: "pilot@aviator.com",
+                    phone: "9952254507",
+                    password: "password123",
+                    balance: 500.00,
+                    joinDate: new Date().toLocaleString(),
+                    status: "active"
+                };
+                localStorage.setItem('aviator_db_users', JSON.stringify([defaultUser]));
+            }
+            if (!localStorage.getItem('aviator_txns')) {
+                localStorage.setItem('aviator_txns', JSON.stringify([]));
+            }
+        }
+        preseedDb();
+
+        // Procedural success audio context chord
+        function playSuccessChord() {
+            try {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                const audioCtx = new AudioContextClass();
+                const now = audioCtx.currentTime;
+
+                const notes = [261.63, 329.63, 392.00, 523.25]; // C4, E4, G4, C5 (C Major Chord)
+                notes.forEach((freq, idx) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.05);
+
+                    gain.gain.setValueAtTime(0.12, now + idx * 0.05);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.05 + 0.4);
+
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now + idx * 0.05);
+                    osc.stop(now + idx * 0.05 + 0.45);
+                });
+            } catch (e) {}
+        }
+
+        // Toggle triggers
+        const btnToggleLogin = document.getElementById('btnToggleLogin');
+        const btnToggleRegister = document.getElementById('btnToggleRegister');
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const alertBox = document.getElementById('authAlert');
+
+        btnToggleLogin.onclick = () => {
+            btnToggleLogin.classList.add('active');
+            btnToggleRegister.classList.remove('active');
+            loginForm.classList.add('active');
+            registerForm.classList.remove('active');
+            alertBox.className = "alert-box";
+        };
+
+        btnToggleRegister.onclick = () => {
+            btnToggleRegister.classList.add('active');
+            btnToggleLogin.classList.remove('active');
+            registerForm.classList.add('active');
+            loginForm.classList.remove('active');
+            alertBox.className = "alert-box";
+        };
+
+        // SIGN IN SUBMIT
+        loginForm.onsubmit = (e) => {
+            e.preventDefault();
+            alertBox.className = "alert-box";
+
+            const loginId = document.getElementById('loginId').value.trim();
+            const loginPass = document.getElementById('loginPassword').value;
+            const spinner = document.getElementById('loginSpinner');
+            const submitSpan = loginForm.querySelector('.submit-btn span');
+
+            submitSpan.style.opacity = "0.5";
+            spinner.style.display = "block";
+
+            setTimeout(() => {
+                const users = JSON.parse(localStorage.getItem('aviator_db_users')) || [];
+                const matched = users.find(u => (u.email === loginId || u.phone === loginId) && u.password === loginPass);
+
+                spinner.style.display = "none";
+                submitSpan.style.opacity = "1";
+
+                if (!matched) {
+                    alertBox.className = "alert-box error";
+                    alertBox.textContent = "Invalid pilot email/phone or security access password.";
+                    return;
+                }
+
+                if (matched.status === "banned") {
+                    alertBox.className = "alert-box error";
+                    alertBox.textContent = "Suspended! Your pilot credentials are blocklisted by flight control.";
+                    return;
+                }
+
+                // Authorized
+                localStorage.setItem('aviator_session', matched.email);
+                localStorage.setItem('aviator_user', JSON.stringify(matched));
+                alertBox.className = "alert-box success";
+                alertBox.textContent = "Authorization Granted! Redirecting to flight cockpit...";
+                playSuccessChord();
+
+                setTimeout(() => {
+                    window.location.href = "index.html";
+                }, 1200);
+
+            }, 800);
+        };
+
+        // PILOT REGISTER SUBMIT
+        registerForm.onsubmit = (e) => {
+            e.preventDefault();
+            alertBox.className = "alert-box";
+
+            const email = document.getElementById('regEmail').value.trim().toLowerCase();
+            const phone = document.getElementById('regPhone').value.trim();
+            const pass = document.getElementById('regPassword').value;
+            const confirmPass = document.getElementById('regConfirmPassword').value;
+            const spinner = document.getElementById('regSpinner');
+            const submitSpan = registerForm.querySelector('.submit-btn span');
+
+            if (pass !== confirmPass) {
+                alertBox.className = "alert-box error";
+                alertBox.textContent = "Security confirmation mismatch. Passwords do not match.";
+                return;
+            }
+
+            submitSpan.style.opacity = "0.5";
+            spinner.style.display = "block";
+
+            setTimeout(() => {
+                const users = JSON.parse(localStorage.getItem('aviator_db_users')) || [];
+                
+                // Check dupes
+                const dup = users.find(u => u.email === email || u.phone === phone);
+                spinner.style.display = "none";
+                submitSpan.style.opacity = "1";
+
+                if (dup) {
+                    alertBox.className = "alert-box error";
+                    alertBox.textContent = "Duplicate registry! This email or phone is already authorized.";
+                    return;
+                }
+
+                // Register user
+                const newUser = {
+                    email: email,
+                    phone: phone,
+                    password: pass,
+                    balance: 500.00, // starting ₹500 welcome credit
+                    joinDate: new Date().toLocaleString(),
+                    status: "active"
+                };
+                users.push(newUser);
+                localStorage.setItem('aviator_db_users', JSON.stringify(users));
+
+                // Log a welcome credit transaction in txns
+                const txns = JSON.parse(localStorage.getItem('aviator_txns')) || [];
+                const welcomeTxn = {
+                    txnId: "bon-" + Math.floor(Math.random() * 89999 + 10000) + "-500",
+                    email: email,
+                    type: "DEPOSIT",
+                    amount: 500.00,
+                    desc: "Razorpay Welcome Bonus Credit",
+                    status: "SUCCESS",
+                    date: new Date().toLocaleString()
+                };
+                txns.push(welcomeTxn);
+                localStorage.setItem('aviator_txns', JSON.stringify(txns));
+
+                // Authorize
+                localStorage.setItem('aviator_session', email);
+                localStorage.setItem('aviator_user', JSON.stringify(newUser));
+                alertBox.className = "alert-box success";
+                alertBox.textContent = "Pilot Account Created! Credited welcome reward ₹500.00 INR. Flying in...";
+                playSuccessChord();
+
+                setTimeout(() => {
+                    window.location.href = "index.html";
+                }, 1500);
+
+            }, 1000);
+        };
+
+        // Init icons
+        lucide.createIcons();
+    </script>
+</body>
+</html>

@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Aviator - Ground Control Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body.admin-body {
+            background: #090a0f;
+            padding: 20px;
+            overflow-y: auto;
+            height: 100vh;
+            height: 100dvh;
+        }
+
+        .admin-container {
+            max-width: 1200px;
+            margin: 0 auto 50px auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 15px;
+        }
+
+        .admin-tabs {
+            display: flex;
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 4px;
+            gap: 4px;
+        }
+
+        .admin-tab {
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 13px;
+            color: rgba(255,255,255,0.6);
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+
+        .admin-tab.active {
+            background: var(--bg-panel-light);
+            color: #ffffff;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .admin-panel {
+            display: none;
+            flex-direction: column;
+            gap: 20px;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .admin-panel.active {
+            display: flex;
+        }
+
+        /* Tables */
+        .admin-table-container {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+        }
+
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 13px;
+        }
+
+        .admin-table th, .admin-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .admin-table th {
+            background: #12141d;
+            font-family: var(--font-heading);
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            color: rgba(255,255,255,0.4);
+        }
+
+        .admin-table tr:hover td {
+            background: rgba(255,255,255,0.01);
+        }
+
+        /* Action Buttons */
+        .btn-action {
+            padding: 6px 12px;
+            border-radius: 4px;
+            border: none;
+            font-weight: 700;
+            font-size: 11px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+
+        .btn-action.approve { background: var(--accent-green); color: #000000; }
+        .btn-action.reject { background: #5c0505; color: #ff1744; border: 1px solid #ff1744; }
+        .btn-action.manage { background: #00b0ff; color: #000000; }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        /* Premium Account Status Segmented Toggle */
+        .status-segmented-control {
+            display: flex;
+            background: rgba(0, 0, 0, 0.25);
+            padding: 4px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            gap: 4px;
+            width: 100%;
+            height: 38px;
+            align-items: center;
+        }
+
+        .status-option-btn {
+            flex: 1;
+            height: 28px;
+            border-radius: 6px;
+            border: 1px solid transparent;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.65);
+            font-size: 11px;
+            font-weight: 800;
+            cursor: pointer;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .status-option-btn:hover {
+            color: #ffffff;
+        }
+
+        .status-option-btn.active-status {
+            background: var(--accent-green);
+            color: #000000;
+            font-weight: 900;
+            box-shadow: 0 0 12px var(--accent-green-glow);
+        }
+
+        .status-option-btn.banned-status {
+            background: var(--accent-red);
+            color: #ffffff;
+            font-weight: 900;
+            box-shadow: 0 0 12px var(--accent-red-glow);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="admin-body">
+    <div id="toast-container"></div>
+
+    <div class="admin-container">
+        
+        <div class="admin-header">
+            <div style="display:flex; align-items:center; gap:10px">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="var(--accent-red)">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z"/>
+                </svg>
+                <h1 style="font-family:var(--font-heading); font-size:24px; font-weight:800; letter-spacing:0.5px">GROUND CONTROL PANEL</h1>
+            </div>
+            <button class="btn-deposit" onclick="window.location.href='index.html'">Back to Deck</button>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="admin-tabs">
+            <div class="admin-tab active" id="tab-users" onclick="setPanel('users')">Pilot Registers</div>
+            <div class="admin-tab" id="tab-txns" onclick="setPanel('txns')">Deposit/Payout Reviews</div>
+            <div class="admin-tab" id="tab-tickets" onclick="setPanel('tickets')">Helpdesk Tickets</div>
+        </div>
+
+        <!-- 1. USER PANEL -->
+        <div class="admin-panel active" id="panel-users">
+            <!-- Edit Account Form -->
+            <div class="glass-panel" style="padding: 20px;">
+                <h2 style="font-family:var(--font-heading); font-size:16px; font-weight:700; margin-bottom:12px">Edit / Modify Pilot Account</h2>
+                <form id="edit-user-form" onsubmit="saveUserModification(event)" class="form-row">
+                    <div class="input-group">
+                        <label>Target Email</label>
+                        <input type="email" id="edit-email" class="input-field" placeholder="Select player to manage..." required readonly>
+                    </div>
+                    <div class="input-group">
+                        <label>Nickname</label>
+                        <input type="text" id="edit-nickname" class="input-field" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Phone Number</label>
+                        <input type="text" id="edit-phone" class="input-field" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Wallet Balance (₹)</label>
+                        <input type="number" id="edit-balance" class="input-field" step="0.01" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Credentials Password</label>
+                        <input type="text" id="edit-password" class="input-field" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Stored UPI ID</label>
+                        <input type="text" id="edit-upi" class="input-field" placeholder="e.g. pilot@upi">
+                    </div>
+                    <div class="input-group">
+                        <label>Bank Account & IFSC</label>
+                        <input type="text" id="edit-bank" class="input-field" placeholder="e.g. HDFC 12345, IFSC...">
+                    </div>
+                    <div class="input-group">
+                        <label>Account Status</label>
+                        <div class="status-segmented-control">
+                            <button type="button" id="status-btn-active" class="status-option-btn active-status" onclick="updateStatusSelection('ACTIVE')">ACTIVE</button>
+                            <button type="button" id="status-btn-banned" class="status-option-btn" onclick="updateStatusSelection('BANNED')">BANNED</button>
+                        </div>
+                        <input type="hidden" id="edit-status" value="ACTIVE">
+                    </div>
+                    <div style="grid-column: span 4; display:flex; gap:10px; justify-content:flex-end; margin-top:8px">
+                        <button type="button" class="btn-action reject" onclick="deleteUserAccount()" style="padding: 10px 20px;">Delete Account</button>
+                        <button type="submit" class="btn-action approve" style="padding: 10px 20px;">Save Modifications</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Users table list -->
+            <div class="admin-table-container">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Nickname</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Wallet Balance</th>
+                            <th>Password</th>
+                            <th>Status</th>
+                            <th>Rounds Played</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-table-body">
+                        <!-- Injected -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Audit Logs Side-by-Side Boards -->
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px">
+                <!-- User Payout history -->
+                <div class="admin-table-container">
+                    <h3 style="font-family:var(--font-heading); font-size:13px; font-weight:700; padding:12px 16px; background:#11131c; border-bottom:1px solid var(--border-color)">Selected Pilot: Balance Audits</h3>
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="user-audit-balances">
+                            <tr><td colspan="4" style="text-align:center; opacity:0.5">Select a pilot to inspect.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- User Flights betting history -->
+                <div class="admin-table-container">
+                    <h3 style="font-family:var(--font-heading); font-size:13px; font-weight:700; padding:12px 16px; background:#11131c; border-bottom:1px solid var(--border-color)">Selected Pilot: Betting Audits</h3>
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Amount</th>
+                                <th>Cashed Out</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="user-audit-flights">
+                            <tr><td colspan="4" style="text-align:center; opacity:0.5">Select a pilot to inspect.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. TRANSACTION REVIEWS PANEL -->
+        <div class="admin-panel" id="panel-txns">
+            <div class="admin-table-container">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Txn ID</th>
+                            <th>Type</th>
+                            <th>Player Detail</th>
+                            <th>description</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="txns-table-body">
+                        <!-- Injected -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 3. TICKET HELPDESK PANEL -->
+        <div class="admin-panel" id="panel-tickets">
+            <div class="admin-table-container">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Ticket ID</th>
+                            <th>Player Detail</th>
+                            <th>Category</th>
+                            <th>Message</th>
+                            <th>Reply</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tickets-table-body">
+                        <!-- Injected -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Check session
+        let activeUser = null;
+        const savedSession = localStorage.getItem('aviator_user');
+        if (!savedSession) {
+            window.location.href = "login.html";
+        } else {
+            activeUser = JSON.parse(savedSession);
+        }
+
+        // Toasts
+        function showToast(title, body, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            toast.innerHTML = `
+                <div class="toast-header">
+                    <span>${title}</span>
+                    <span style="cursor:pointer; opacity:0.6" onclick="this.closest('.toast').remove()">×</span>
+                </div>
+                <div class="toast-body">${body}</div>
+                <div class="toast-timer"></div>
+            `;
+            
+            container.appendChild(toast);
+            
+            const timer = toast.querySelector('.toast-timer');
+            timer.style.transition = 'transform 3s linear';
+            setTimeout(() => timer.style.transform = 'scaleX(0)', 50);
+            
+            setTimeout(() => {
+                toast.style.animation = 'toast-spring-in 0.3s ease-in reverse';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function setPanel(panelId) {
+            const panels = document.querySelectorAll('.admin-panel');
+            const tabs = document.querySelectorAll('.admin-tab');
+            
+            panels.forEach(p => p.classList.remove('active'));
+            tabs.forEach(t => t.classList.remove('active'));
+            
+            document.getElementById(`panel-${panelId}`).classList.add('active');
+            document.getElementById(`tab-${panelId}`).classList.add('active');
+            
+            renderAllData();
+        }
+
+        function renderAllData() {
+            renderUsers();
+            renderTxns();
+            renderTickets();
+        }
+
+        // User management
+        function renderUsers() {
+            const body = document.getElementById('users-table-body');
+            const dbUsers = JSON.parse(localStorage.getItem('aviator_db_users')) || [];
+            
+            body.innerHTML = '';
+            dbUsers.forEach(u => {
+                const tr = document.createElement('tr');
+                const displayName = u.nickname || u.email.split('@')[0];
+                tr.innerHTML = `
+                    <td><strong>${displayName}</strong></td>
+                    <td>${u.email}</td>
+                    <td>${u.phone || 'N/A'}</td>
+                    <td style="color:var(--accent-green)">₹${u.balance.toFixed(2)}</td>
+                    <td><input type="password" value="${u.password}" readonly style="background:transparent; border:none; color:#ffffff; width:80px; font-size:12px"></td>
+                    <td>
+                        <span class="badge-status ${u.status === 'BANNED' ? 'reject' : 'resolved'}" style="padding:2px 6px; font-size:9px">
+                            ${u.status}
+                        </span>
+                    </td>
+                    <td>${u.stats ? u.stats.totalGames : 0}</td>
+                    <td>
+                        <button class="btn-action manage" onclick="selectUserToManage('${u.email}')">Manage</button>
+                    </td>
+                `;
+                body.appendChild(tr);
+            });
+        }
+
+        function updateStatusSelection(status) {
+            const activeBtn = document.getElementById('status-btn-active');
+            const bannedBtn = document.getElementById('status-btn-banned');
+            const hiddenInput = document.getElementById('edit-status');
+            
+            const cleanStatus = (status || 'ACTIVE').toUpperCase();
+            hiddenInput.value = cleanStatus;
+            
+            if (cleanStatus === 'BANNED') {
+                activeBtn.className = "status-option-btn";
+                bannedBtn.className = "status-option-btn banned-status";
+            } else {
+                activeBtn.className = "status-option-btn active-status";
+                bannedBtn.className = "status-option-btn";
+            }
+        }
+
+        function selectUserToManage(email) {
+            const dbUsers = JSON.parse(localStorage.getItem('aviator_db_users')) || [];
+            const user = dbUsers.find(u => u.email === email);
+            if (user) {
+                document.getElementById('edit-email').value = user.email;
+                document.getElementById('edit-nickname').value = user.nickname || user.email.split('@')[0];
+                document.getElementById('edit-phone').value = user.phone || '';
+                document.getElementById('edit-balance').value = user.balance;
+                document.getElementById('edit-password').value = user.password;
+                document.getElementById('edit-upi').value = user.upiId || '';
+                document.getElementById('edit-bank').value = user.bankDetails || '';
+                updateStatusSelection(user.status || 'ACTIVE');
+                
+                renderAuditBoards(email);
+            }
+        }
+
+        function renderAuditBoards(email) {
+            const txns = JSON.parse(localStorage.getItem('aviator_txns')) || [];
+            const userTxns = txns.filter(t => t.email.toLowerCase() === email.toLowerCase());
+            
+            // Balances Audit
+            const balBody = document.getElementById('user-audit-balances');
+            const balances = userTxns.filter(t => t.type === 'DEPOSIT' || t.type === 'WITHDRAWAL');
+            balBody.innerHTML = '';
+            if (balances.length === 0) {
+                balBody.innerHTML = '<tr><td colspan="4" style="text-align:center; opacity:0.5">No balance audits found.</td></tr>';
+            } else {
+                balances.forEach(b => {
+                    balBody.innerHTML += `
+                        <tr>
+                            <td>${new Date(b.date).toLocaleDateString()}</td>
+                            <td>${b.type}</td>
+                            <td style="color:${b.type==='DEPOSIT'?'var(--accent-green)':'var(--accent-red)'}">₹${b.amount.toFixed(2)}</td>
+                            <td>${b.status}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            // Flights Audit
+            const flightBody = document.getElementById('user-audit-flights');
+            const flights = userTxns.filter(t => t.type === 'FLIGHT');
+            flightBody.innerHTML = '';
+            if (flights.length === 0) {
+                flightBody.innerHTML = '<tr><td colspan="4" style="text-align:center; opacity:0.5">No flights audits found.</td></tr>';
+            } else {
+                flights.forEach(f => {
+                    flightBody.innerHTML += `
+                        <tr>
+                            <td>${new Date(f.date).toLocaleDateString()}</td>
+                            <td>₹${f.amount.toFixed(2)}</td>
+                            <td>${f.multiplier > 0 ? f.multiplier + 'x' : 'N/A'}</td>
+                            <td style="color:${f.status==='SUCCESS'?'var(--accent-green)':'var(--accent-red)'}">${f.status}</td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        function saveUserModification(e) {
+            e.preventDefault();
+            const email = document.getElementById('edit-email').value;
+            const nickname = document.getElementById('edit-nickname').value.trim();
+            const phone = document.getElementById('edit-phone').value.trim();
+            const balance = parseFloat(document.getElementById('edit-balance').value);
+            const password = document.getElementById('edit-password').value;
+            const status = document.getElementById('edit-status').value;
+            const upiId = document.getElementById('edit-upi').value.trim();
+            const bankDetails = document.getElementById('edit-bank').value.trim();
+            
+            const dbUsers = JSON.parse(localStorage.getItem('aviator_db_users')) || [];
+            const idx = dbUsers.findIndex(u => u.email === email);
+            
+            if (idx !== -1) {
+                dbUsers[idx].nickname = nickname;
+                dbUsers[idx].phone = phone;
+                dbUsers[idx].balance = balance;
+                dbUsers[idx].password = password;
+                dbUsers[idx].status = status;
+                dbUsers[idx].upiId = upiId;
+                dbUsers[idx].bankDetails = bankDetails;
+                
+                localStorage.setItem('aviator_db_users', JSON.stringify(dbUsers));
+                showToast("Success", "Pilot account profile updated.", "success");
+                
+                // Clear inputs
+                document.getElementById('edit-user-form').reset();
+                updateStatusSelection('ACTIVE');
+                renderAllData();
+            }
+        }
+
+        function deleteUserAccount() {
+            const email = document.getElementById('edit-email').value;
+            if (!email) {
+                showToast("Action Failed", "Please select a pilot account first.", "error");
+                return;
+            }
+            
+            if (confirm(`Are you sure you want to permanently delete player ${email}?`)) {
+                let dbUsers = JSON.parse(localStorage.getItem('aviator_db_users')) || [];
+                dbUsers = dbUsers.filter(u => u.email !== email);
+                localStorage.setItem('aviator_db_users', JSON.stringify(dbUsers));
+                
+                // Prune tickets
+                let tickets = JSON.parse(localStorage.getItem('aviator_tickets')) || [];
+                tickets = tickets.filter(t => t.email !== email);
+                localStorage.setItem('aviator_tickets', JSON.stringify(tickets));
+                
+                showToast("Account Deleted", "Pilot account registry wiped.", "success");
+                document.getElementById('edit-user-form').reset();
+                updateStatusSelection('ACTIVE');
+                renderAllData();
+            }
+        }
+
+        // Transactions management
+        function renderTxns() {
+            const body = document.getElementById('txns-table-body');
+            const txns = JSON.parse(localStorage.getItem('aviator_txns')) || [];
+            
+            // Sort by date desc
+            txns.sort((a,b) => new Date(b.date) - new Date(a.date));
+            
+            body.innerHTML = '';
+            txns.forEach(t => {
+                if (t.type === 'FLIGHT') return; // Hide standard flight bets from this ledger
+                
+                const tr = document.createElement('tr');
+                let actionsHTML = '';
+                const currentId = t.txnId || t.id || '';
+                
+                if (t.status === 'PENDING') {
+                    actionsHTML = `
+                        <button class="btn-action approve" onclick="processTxn('${currentId}', 'APPROVE')">Approve</button>
+                        <button class="btn-action reject" onclick="processTxn('${currentId}', 'REJECT')">Reject</button>
+                    `;
+                } else {
+                    actionsHTML = `<span style="font-size:11px; opacity:0.5; font-weight:700">COMPLETED</span>`;
+                }
+                
+                tr.innerHTML = `
+                    <td>${new Date(t.date).toLocaleDateString()}</td>
+                    <td><strong>${currentId}</strong></td>
+                    <td>${t.type}</td>
+                    <td>${t.email}</td>
+                    <td>${t.desc || t.upi || ''}</td>
+                    <td style="color:${t.type==='DEPOSIT'?'var(--accent-green)':'var(--accent-red)'}">₹${t.amount.toFixed(2)}</td>
+                    <td>
+                        <span class="badge-status ${t.status === 'PENDING' ? 'progress' : (t.status === 'SUCCESS' || t.status === 'APPROVED' ? 'resolved' : 'reject')}">
+                            ${t.status}
+                        </span>
+                    </td>
+                    <td>
+                        <div style="display:flex; gap:6px">${actionsHTML}</div>
+                    </td>
+                `;
+                body.appendChild(tr);
+            });
+        }
+
+        function processTxn(txnId, action) {
+            const txns = JSON.parse(localStorage.getItem('aviator_txns')) || [];
+            const dbUsers = JSON.parse(localStorage.getItem('aviator_db_users')) || [];
+            
+            const txnIdx = txns.findIndex(t => (t.txnId || t.id || '') === txnId);
+            if (txnIdx === -1) return;
+            
+            const txn = txns[txnIdx];
+            
+            // Confirmation prompt
+            const actionVerb = action === 'APPROVE' ? 'APPROVE' : 'REJECT';
+            const confirmMsg = `Are you sure you want to ${actionVerb} this ${txn.type.toLowerCase()} of ₹${txn.amount.toFixed(2)} for pilot ${txn.email}?`;
+            if (!confirm(confirmMsg)) {
+                return;
+            }
+            
+            const userIdx = dbUsers.findIndex(u => u.email.toLowerCase() === txn.email.toLowerCase());
+            
+            if (userIdx === -1) {
+                showToast("Action Failed", "Associated player account not found.", "error");
+                return;
+            }
+            
+            if (action === 'APPROVE') {
+                txn.status = 'SUCCESS';
+                if (txn.type === 'DEPOSIT') {
+                    dbUsers[userIdx].balance = parseFloat((dbUsers[userIdx].balance + txn.amount).toFixed(2));
+                }
+                showToast("Transaction Approved", "Wallet balance credited.", "success");
+            } else {
+                txn.status = 'REJECTED';
+                showToast("Transaction Rejected", "No balances were altered.", "warning");
+            }
+            
+            localStorage.setItem('aviator_txns', JSON.stringify(txns));
+            localStorage.setItem('aviator_db_users', JSON.stringify(dbUsers));
+            
+            renderAllData();
+        }
+
+        // Tickets management
+        function renderTickets() {
+            const body = document.getElementById('tickets-table-body');
+            const tickets = JSON.parse(localStorage.getItem('aviator_tickets')) || [];
+            
+            // Sort by date desc
+            tickets.sort((a,b) => new Date(b.date) - new Date(a.date));
+            
+            body.innerHTML = '';
+            tickets.forEach(t => {
+                const tr = document.createElement('tr');
+                const currentTktId = t.ticketId || t.id || '';
+                
+                let actionHTML = '';
+                if (t.status !== 'RESOLVED') {
+                    actionHTML = `
+                        <form onsubmit="replyTicket(event, '${currentTktId}')" style="display:flex; gap:6px">
+                            <input type="text" placeholder="Write reply..." class="input-field" style="padding:6px; font-size:11px; flex:1" required>
+                            <button type="submit" class="btn-action approve">Reply</button>
+                        </form>
+                    `;
+                } else {
+                    actionHTML = `<span style="font-size:11px; opacity:0.5; font-weight:700">RESOLVED</span>`;
+                }
+                
+                tr.innerHTML = `
+                    <td>${new Date(t.date).toLocaleDateString()}</td>
+                    <td><strong>${currentTktId}</strong></td>
+                    <td>${t.email}</td>
+                    <td>${t.category}</td>
+                    <td>${t.msg || t.message || ''}</td>
+                    <td>${t.reply || '<span style="opacity:0.3">None</span>'}</td>
+                    <td>
+                        <span class="badge-status ${t.status === 'OPEN' || t.status === 'PENDING' ? 'progress' : (t.status === 'RESOLVED' ? 'resolved' : 'reject')}">
+                            ${t.status}
+                        </span>
+                    </td>
+                    <td>${actionHTML}</td>
+                `;
+                body.appendChild(tr);
+            });
+        }
+
+        function replyTicket(e, ticketId) {
+            e.preventDefault();
+            const input = e.target.querySelector('input');
+            const replyText = input.value.trim();
+            if (!replyText) return;
+            
+            const tickets = JSON.parse(localStorage.getItem('aviator_tickets')) || [];
+            const idx = tickets.findIndex(t => (t.ticketId || t.id || '') === ticketId);
+            
+            if (idx !== -1) {
+                tickets[idx].reply = replyText;
+                tickets[idx].status = 'RESOLVED';
+                localStorage.setItem('aviator_tickets', JSON.stringify(tickets));
+                
+                showToast("Ticket Resolved", "Reply synchronized to pilot support desk.", "success");
+                renderAllData();
+            }
+        }
+
+        // Initialize lists
+        renderAllData();
+
+        // Listen for cross tab storage updates
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'aviator_db_users' || e.key === 'aviator_txns' || e.key === 'aviator_tickets') {
+                renderAllData();
+            }
+        });
+    </script>
+</body>
+</html>

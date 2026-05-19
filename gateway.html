@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Razorpay Secure Checkout - Aviator</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@800&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        :root {
+            --rzp-blue: #0b69ff;
+            --rzp-dark-blue: #002244;
+            --bg-page: #f4f6f9;
+            --bg-card: #ffffff;
+            --text-main: #2b3a4a;
+            --text-grey: #6a7c92;
+            --border-color: #e2e8f0;
+            --success-color: #22c55e;
+            --font-sans: 'Inter', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: var(--font-sans);
+        }
+
+        body {
+            background-color: var(--bg-page);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .checkout-card {
+            width: 440px;
+            max-width: 100%;
+            background: var(--bg-card);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.06);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            animation: spring-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .checkout-header {
+            background: var(--rzp-dark-blue);
+            color: #ffffff;
+            padding: 20px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid var(--rzp-blue);
+        }
+
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-logo svg {
+            fill: var(--rzp-blue);
+        }
+
+        .header-logo span {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            font-size: 16px;
+            letter-spacing: 0.5px;
+        }
+
+        .merchant-badge {
+            font-size: 10px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-weight: 700;
+            color: rgba(255,255,255,0.8);
+        }
+
+        .checkout-body {
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .amount-section {
+            background: rgba(11, 105, 255, 0.03);
+            border: 1px solid rgba(11, 105, 255, 0.08);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .amount-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-grey);
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .amount-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .amount-symbol {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--rzp-dark-blue);
+        }
+
+        .amount-input {
+            border: none;
+            background: transparent;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            font-size: 32px;
+            color: var(--rzp-dark-blue);
+            text-align: center;
+            width: 140px;
+            outline: none;
+        }
+
+        .qr-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            border-top: 1px dashed var(--border-color);
+            border-bottom: 1px dashed var(--border-color);
+            padding: 20px 0;
+        }
+
+        .qr-canvas-wrapper {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+            position: relative;
+        }
+
+        #qrCanvas {
+            display: block;
+            width: 150px;
+            height: 150px;
+        }
+
+        .vpa-address {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-page);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.15s ease;
+        }
+
+        .vpa-address:hover {
+            background: #e9eff5;
+        }
+
+        .pay-apps-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .pay-app-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 8px;
+            cursor: pointer;
+            transition: 0.15s ease;
+        }
+
+        .pay-app-btn:hover {
+            background: rgba(11, 105, 255, 0.02);
+            border-color: var(--rzp-blue);
+            transform: translateY(-1px);
+        }
+
+        .pay-app-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            background: #f0f4f8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 11px;
+            color: var(--rzp-blue);
+        }
+
+        .pay-app-name {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-grey);
+        }
+
+        .confirm-btn {
+            width: 100%;
+            background: var(--rzp-blue);
+            color: #ffffff;
+            border: none;
+            border-radius: 12px;
+            padding: 14px;
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(11, 105, 255, 0.35);
+            transition: 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .confirm-btn:hover {
+            background: #0056e2;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(11, 105, 255, 0.45);
+        }
+
+        .confirm-btn.processing {
+            background: var(--success-color);
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.35);
+        }
+
+        .footer-secure {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 10px;
+            color: var(--text-grey);
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        /* Success screen overlay inside card */
+        .success-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 24px;
+            text-align: center;
+            animation: fade-slide 0.3s ease-out;
+        }
+
+        .success-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(34, 197, 94, 0.1);
+            color: var(--success-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .success-screen h2 {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            font-size: 20px;
+            margin-bottom: 8px;
+            color: var(--rzp-dark-blue);
+        }
+
+        .success-screen p {
+            font-size: 12px;
+            color: var(--text-grey);
+            line-height: 1.5;
+            margin-bottom: 24px;
+        }
+
+        .close-btn {
+            background: var(--rzp-dark-blue);
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 24px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        @keyframes spring-in {
+            from { opacity: 0; transform: scale(0.9) translateY(15px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        @keyframes fade-slide {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="checkout-card" id="checkoutCard">
+        
+        <!-- Header -->
+        <div class="checkout-header">
+            <div class="header-logo">
+                <svg width="24" height="24" viewBox="0 0 24 24">
+                    <polygon points="12,2 22,12 17,12 17,22 7,22 7,12 2,12" />
+                </svg>
+                <span>Razorpay Secure</span>
+            </div>
+            <div class="merchant-badge">Merchant Cockpit</div>
+        </div>
+
+        <!-- Body Checkout Screen -->
+        <div class="checkout-body" id="screenCheckout">
+            
+            <!-- Amount -->
+            <div class="amount-section">
+                <div class="amount-label">Deposit Wagers Credits</div>
+                <div class="amount-row">
+                    <span class="amount-symbol">₹</span>
+                    <input type="number" class="amount-input" value="500" min="100" max="50000" id="depositAmount">
+                </div>
+            </div>
+
+            <!-- Procedural QR scannable -->
+            <div class="qr-section">
+                <div class="qr-canvas-wrapper">
+                    <canvas id="qrCanvas"></canvas>
+                </div>
+                <div class="vpa-address" id="copyVpaBtn" title="Click to copy UPI address">
+                    <span id="merchantVpa">9952254507@upi</span>
+                    <i data-lucide="copy" style="width: 13px; height: 13px; color: var(--text-grey);"></i>
+                </div>
+                <span style="font-size: 9px; color: var(--text-grey); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                    Scan QR code with any UPI app to deposit
+                </span>
+            </div>
+
+            <!-- Instant payment apps deep shortcuts -->
+            <div class="pay-apps-grid">
+                <div class="pay-app-btn" onclick="mockAppClick('Google Pay')">
+                    <div class="pay-app-icon" style="color: #ea4335;">G</div>
+                    <div class="pay-app-name">GPay</div>
+                </div>
+                <div class="pay-app-btn" onclick="mockAppClick('PhonePe')">
+                    <div class="pay-app-icon" style="color: #5f259f;">P</div>
+                    <div class="pay-app-name">PhonePe</div>
+                </div>
+                <div class="pay-app-btn" onclick="mockAppClick('Paytm')">
+                    <div class="pay-app-icon" style="color: #00baf2;">Py</div>
+                    <div class="pay-app-name">Paytm</div>
+                </div>
+                <div class="pay-app-btn" onclick="mockAppClick('BHIM UPI')">
+                    <div class="pay-app-icon" style="color: #ea5b0c;">B</div>
+                    <div class="pay-app-name">BHIM</div>
+                </div>
+            </div>
+
+            <!-- Confirm Action -->
+            <button class="confirm-btn" id="confirmBtn">
+                <i data-lucide="shield-check" style="width: 16px; height: 16px;"></i>
+                <span>CONFIRM PAY AND FLY</span>
+            </button>
+
+            <!-- Secure footer badge -->
+            <div class="footer-secure">
+                <i data-lucide="lock" style="width: 10px; height: 10px;"></i>
+                <span>PCI-DSS Compliant & Secured SSL</span>
+            </div>
+
+        </div>
+
+        <!-- Success Screen -->
+        <div class="success-screen" id="screenSuccess">
+            <div class="success-icon">
+                <i data-lucide="check-circle-2" style="width: 36px; height: 36px;"></i>
+            </div>
+            <h2>Wager Request Logged!</h2>
+            <p>
+                Your deposit transaction of <strong>₹<span id="loggedAmount">0.00</span></strong> has been sent to our pilot verification desk. Wallets balance updates as soon as approved!
+            </p>
+            <button class="close-btn" onclick="window.close()">Close Window</button>
+        </div>
+
+    </div>
+
+    <script>
+        let currentUserEmail = "";
+
+        // Check active session
+        function checkActiveSession() {
+            const session = localStorage.getItem('aviator_session');
+            if (session) {
+                currentUserEmail = session;
+            } else {
+                currentUserEmail = "guest@aviator.com";
+            }
+        }
+        checkActiveSession();
+
+        // -------------------------------------------------------------
+        // PROCEDURAL CANVAS QR GENERATOR
+        // -------------------------------------------------------------
+        const canvas = document.getElementById('qrCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function drawProceduralQR(amount) {
+            const size = 150;
+            canvas.width = size;
+            canvas.height = size;
+
+            ctx.clearRect(0, 0, size, size);
+            
+            // Draw background
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, size, size);
+
+            // Draw alignment patterns (Squares in corners)
+            ctx.fillStyle = '#000000';
+            
+            // Top Left
+            drawFinderPattern(10, 10);
+            // Top Right
+            drawFinderPattern(size - 35, 10);
+            // Bottom Left
+            drawFinderPattern(10, size - 35);
+
+            // Seeded random number generator based on the amount
+            const seed = amount * 1234.56;
+            function random(i) {
+                const x = Math.sin(seed + i * 9.87) * 10000;
+                return x - Math.floor(x);
+            }
+
+            // Fill randomized black & white pixels representing the payload
+            ctx.fillStyle = '#000000';
+            const blockSize = 4;
+            const gridCount = Math.floor(size / blockSize);
+
+            for (let x = 0; x < gridCount; x++) {
+                for (let y = 0; y < gridCount; y++) {
+                    // Skip finder corner areas
+                    const isTopLeft = x < 9 && y < 9;
+                    const isTopRight = x > gridCount - 10 && y < 9;
+                    const isBottomLeft = x < 9 && y > gridCount - 10;
+                    
+                    if (isTopLeft || isTopRight || isBottomLeft) continue;
+
+                    // Random block placement
+                    const hashIndex = x * gridCount + y;
+                    if (random(hashIndex) > 0.45) {
+                        ctx.fillRect(x * blockSize, y * blockSize, blockSize, blockSize);
+                    }
+                }
+            }
+        }
+
+        function drawFinderPattern(x, y) {
+            // Outer block
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(x, y, 25, 25);
+            // Inner white ring
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(x + 4, y + 4, 17, 17);
+            // Center solid square
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(x + 8, y + 8, 9, 9);
+        }
+
+        // Draw initially
+        drawProceduralQR(500);
+
+        // Update QR on amount changes
+        const amountInput = document.getElementById('depositAmount');
+        amountInput.onchange = () => {
+            let val = parseInt(amountInput.value);
+            if (isNaN(val) || val < 100) val = 100;
+            amountInput.value = val;
+            drawProceduralQR(val);
+        };
+
+        amountInput.onkeyup = () => {
+            const val = parseInt(amountInput.value) || 100;
+            drawProceduralQR(val);
+        };
+
+        // Click to copy VPA
+        document.getElementById('copyVpaBtn').onclick = () => {
+            const vpa = document.getElementById('merchantVpa').textContent;
+            navigator.clipboard.writeText(vpa).then(() => {
+                const copyIcon = document.querySelector('#copyVpaBtn i');
+                copyIcon.setAttribute('data-lucide', 'check');
+                lucide.createIcons();
+                setTimeout(() => {
+                    copyIcon.setAttribute('data-lucide', 'copy');
+                    lucide.createIcons();
+                }, 1500);
+            });
+        };
+
+        // Mock app shortcuts click
+        function mockAppClick(appName) {
+            const amount = amountInput.value;
+            alert(`Simulated launch of deep intent link to ${appName} pay flow.\nUPI payload VPA: 9952254507@upi\nAmount: ₹${amount}`);
+        }
+
+        // -------------------------------------------------------------
+        // TRANSACTION SUBMISSION
+        // -------------------------------------------------------------
+        const confirmBtn = document.getElementById('confirmBtn');
+        confirmBtn.onclick = () => {
+            const amount = parseFloat(amountInput.value);
+            
+            // Transition processing
+            confirmBtn.className = "confirm-btn processing";
+            confirmBtn.innerHTML = `<span class="spinner" style="display: block; margin-right: 8px;"></span>PROCESSING SECURE CHECKS...`;
+            confirmBtn.disabled = true;
+
+            setTimeout(() => {
+                // Log the transaction in local storage database
+                const txns = JSON.parse(localStorage.getItem('aviator_txns')) || [];
+                const newTxnId = "dep-" + Math.floor(Math.random() * 89999 + 10000) + "-" + Date.now().toString().slice(-4);
+                
+                const newTxn = {
+                    txnId: newTxnId,
+                    email: currentUserEmail,
+                    type: "DEPOSIT",
+                    amount: amount,
+                    desc: "UPI-QR-Scan Payout Reference ID: " + Math.floor(Math.random() * 89999999),
+                    status: "PENDING",
+                    date: new Date().toLocaleString()
+                };
+
+                txns.push(newTxn);
+                localStorage.setItem('aviator_txns', JSON.stringify(txns));
+
+                // Switch screens
+                document.getElementById('screenCheckout').style.display = "none";
+                document.getElementById('screenSuccess').style.display = "flex";
+                document.getElementById('loggedAmount').textContent = amount.toFixed(2);
+                
+                // Trigger wallet balances cross-tab refreshes
+                localStorage.setItem('aviator_sync_trigger', Date.now());
+
+            }, 1200);
+        };
+
+        // Init icons
+        lucide.createIcons();
+    </script>
+</body>
+</html>
