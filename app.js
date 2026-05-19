@@ -139,8 +139,12 @@
             const savedHistory = localStorage.getItem("aviator_history");
 
             if (savedUser) {
-                state.user = JSON.parse(savedUser);
-                if (!state.user.isLoggedIn) {
+                try {
+                    state.user = JSON.parse(savedUser);
+                } catch (e) {
+                    state.user = null;
+                }
+                if (!state.user || !state.user.isLoggedIn) {
                     window.location.href = "login.html";
                     return;
                 }
@@ -148,13 +152,19 @@
                 // Check active status in central database
                 const dbStr = localStorage.getItem("aviator_db_users");
                 if (dbStr) {
-                    const dbUsers = JSON.parse(dbStr);
-                    const freshest = dbUsers.find(u => String(u.email).toLowerCase().trim() === String(state.user.email).toLowerCase().trim());
-                    if (freshest && freshest.status === "BANNED") {
-                        localStorage.removeItem("aviator_user");
-                        alert("🚨 ACCESS DENIED: Your pilot account has been banned by Flight Control.");
-                        window.location.href = "login.html";
-                        return;
+                    try {
+                        const dbUsers = JSON.parse(dbStr);
+                        if (Array.isArray(dbUsers)) {
+                            const freshest = dbUsers.find(u => String(u.email).toLowerCase().trim() === String(state.user.email).toLowerCase().trim());
+                            if (freshest && freshest.status === "BANNED") {
+                                localStorage.removeItem("aviator_user");
+                                alert("🚨 ACCESS DENIED: Your pilot account has been banned by Flight Control.");
+                                window.location.href = "login.html";
+                                return;
+                            }
+                        }
+                    } catch (e) {
+                        console.warn("Could not check active status in database:", e);
                     }
                 }
             } else {
@@ -163,8 +173,13 @@
             }
 
             if (savedTxns) {
-                state.transactions = JSON.parse(savedTxns);
-            } else {
+                try {
+                    state.transactions = JSON.parse(savedTxns);
+                } catch (e) {
+                    state.transactions = null;
+                }
+            }
+            if (!Array.isArray(state.transactions)) {
                 state.transactions = [
                     { id: "TXN1001", date: new Date().toLocaleString(), desc: "Welcome Bonus Balance", type: "DEPOSIT", amount: 10000.00, status: "SUCCESS" }
                 ];

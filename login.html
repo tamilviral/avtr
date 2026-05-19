@@ -477,7 +477,17 @@
         try {
             const savedDb = localStorage.getItem("aviator_db_users");
             if (savedDb) {
-                db = JSON.parse(savedDb);
+                try {
+                    db = JSON.parse(savedDb);
+                } catch (pe) {
+                    db = [];
+                }
+            }
+            if (!Array.isArray(db)) {
+                db = [];
+            }
+
+            if (db.length > 0) {
                 // Retroactively assign default phone and status if missing
                 db.forEach(u => {
                     if (!u.phone) u.phone = "9876543210";
@@ -507,6 +517,7 @@
             }
         } catch (e) {
             console.error("Local Storage database failed to load:", e);
+            db = [];
         }
 
         // Trigger immediate background sync

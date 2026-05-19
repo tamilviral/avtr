@@ -565,16 +565,31 @@
                 }
 
                 if (savedDb) {
-                    dbUsers = JSON.parse(savedDb);
+                    try {
+                        dbUsers = JSON.parse(savedDb);
+                    } catch (e) {
+                        dbUsers = [];
+                    }
                 }
+                if (!Array.isArray(dbUsers)) dbUsers = [];
 
                 if (savedTxns) {
-                    txnsList = JSON.parse(savedTxns);
+                    try {
+                        txnsList = JSON.parse(savedTxns);
+                    } catch (e) {
+                        txnsList = [];
+                    }
                 }
+                if (!Array.isArray(txnsList)) txnsList = [];
 
                 if (savedTickets) {
-                    ticketsList = JSON.parse(savedTickets);
-                } else {
+                    try {
+                        ticketsList = JSON.parse(savedTickets);
+                    } catch (e) {
+                        ticketsList = null;
+                    }
+                }
+                if (!Array.isArray(ticketsList)) {
                     // Preseed a demo resolved ticket for realistic UI richness
                     ticketsList = [
                         {

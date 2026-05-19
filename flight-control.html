@@ -1008,21 +1008,67 @@
             const ticketsStr = localStorage.getItem("aviator_support_tickets");
 
             if (userStr) {
-                userObj = JSON.parse(userStr);
+                try {
+                    userObj = JSON.parse(userStr);
+                } catch (e) {
+                    userObj = null;
+                }
             }
+            
             if (txnsStr) {
-                txnsList = JSON.parse(txnsStr);
+                try {
+                    txnsList = JSON.parse(txnsStr);
+                } catch (e) {
+                    txnsList = [];
+                }
             }
+            if (!Array.isArray(txnsList)) {
+                txnsList = [];
+                localStorage.setItem("aviator_txns", JSON.stringify(txnsList));
+            }
+
             if (dbStr) {
-                dbUsers = JSON.parse(dbStr);
-            } else if (userObj) {
-                dbUsers = [JSON.parse(JSON.stringify(userObj))];
+                try {
+                    dbUsers = JSON.parse(dbStr);
+                } catch (e) {
+                    dbUsers = null;
+                }
+            }
+            if (!Array.isArray(dbUsers)) {
+                if (userObj) {
+                    dbUsers = [JSON.parse(JSON.stringify(userObj))];
+                } else {
+                    dbUsers = [
+                        {
+                            nickname: "LuckyPilot",
+                            email: "pilot@aviator.com",
+                            phone: "9876543210",
+                            password: "password123",
+                            balance: 10000.00,
+                            status: "ACTIVE",
+                            stats: {
+                                joined: new Date().toLocaleDateString(),
+                                rounds: 0,
+                                wins: 0,
+                                highest: 0.00,
+                                profit: 0.00
+                            }
+                        }
+                    ];
+                }
                 localStorage.setItem("aviator_db_users", JSON.stringify(dbUsers));
             }
+
             if (ticketsStr) {
-                ticketsList = JSON.parse(ticketsStr);
-            } else {
+                try {
+                    ticketsList = JSON.parse(ticketsStr);
+                } catch (e) {
+                    ticketsList = [];
+                }
+            }
+            if (!Array.isArray(ticketsList)) {
                 ticketsList = [];
+                localStorage.setItem("aviator_support_tickets", JSON.stringify(ticketsList));
             }
         }
 

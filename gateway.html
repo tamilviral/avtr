@@ -799,13 +799,22 @@
             let txnsList = [];
 
             if (userStr) {
-                userObj = JSON.parse(userStr);
+                try {
+                    userObj = JSON.parse(userStr);
+                } catch (e) {
+                    userObj = null;
+                }
                 // Balance is NOT credited here. It is only credited upon Admin Approval!
             }
 
             if (txnsStr) {
-                txnsList = JSON.parse(txnsStr);
+                try {
+                    txnsList = JSON.parse(txnsStr);
+                } catch (e) {
+                    txnsList = [];
+                }
             }
+            if (!Array.isArray(txnsList)) txnsList = [];
 
             // Sync newest transaction list from cloud to avoid overwriting other players' data
             try {
