@@ -356,8 +356,8 @@
                 </div>
             </div>
 
-            <!-- Scannable QR Code -->
-            <div class="qr-section">
+            <!-- Scannable QR Code (Hidden initially, shown after amount is confirmed) -->
+            <div class="qr-section" id="qrContainer" style="display: none;">
                 <div class="qr-canvas-wrapper" style="background: #ffffff; padding: 12px; border-radius: 12px; display: flex; align-items: center; justify-content: center; width: 170px; height: 170px; margin: 0 auto 12px auto; border: 1px solid var(--border-color);">
                     <img src="payout-qr.png" id="qrImage" alt="Sri Krishna Store QR" style="width: 100%; height: 100%; object-fit: contain; display: block;">
                 </div>
@@ -370,8 +370,8 @@
                 </span>
             </div>
 
-            <!-- Instant payment apps deep shortcuts -->
-            <div class="pay-apps-grid">
+            <!-- Instant payment apps deep shortcuts (Hidden initially) -->
+            <div class="pay-apps-grid" id="appsContainer" style="display: none;">
                 <div class="pay-app-btn" onclick="mockAppClick('Google Pay')">
                     <div class="pay-app-icon" style="color: #ea4335;">G</div>
                     <div class="pay-app-name">GPay</div>
@@ -390,8 +390,14 @@
                 </div>
             </div>
 
-            <!-- Confirm Action -->
-            <button class="confirm-btn" id="confirmBtn">
+            <!-- Step 1: Generate QR Action -->
+            <button class="confirm-btn" id="generateQrBtn">
+                <i data-lucide="qr-code" style="width: 16px; height: 16px;"></i>
+                <span>GENERATE PAY QR CODE</span>
+            </button>
+
+            <!-- Step 2: Confirm Action (Hidden initially) -->
+            <button class="confirm-btn" id="confirmBtn" style="display: none; background: var(--success-color); box-shadow: 0 4px 15px rgba(34, 197, 94, 0.35);">
                 <i data-lucide="shield-check" style="width: 16px; height: 16px;"></i>
                 <span>CONFIRM PAY AND FLY</span>
             </button>
@@ -456,6 +462,34 @@
             const val = parseInt(amountInput.value) || 100;
         };
 
+        // Step 1: Confirm amount and reveal QR code
+        const generateQrBtn = document.getElementById('generateQrBtn');
+        const qrContainer = document.getElementById('qrContainer');
+        const appsContainer = document.getElementById('appsContainer');
+        const confirmBtn = document.getElementById('confirmBtn');
+
+        generateQrBtn.onclick = () => {
+            let val = parseInt(amountInput.value);
+            if (isNaN(val) || val < 100) val = 100;
+            amountInput.value = val;
+            
+            // Freeze amount input for secure transaction matching
+            amountInput.readOnly = true;
+            amountInput.style.opacity = '0.7';
+            amountInput.style.pointerEvents = 'none';
+
+            // Reveal hidden sections smoothly
+            qrContainer.style.display = 'block';
+            appsContainer.style.display = 'grid';
+            confirmBtn.style.display = 'flex';
+            
+            // Hide Step 1 button
+            generateQrBtn.style.display = 'none';
+
+            // Refresh icons inside shown containers
+            lucide.createIcons();
+        };
+
         // Click to copy VPA
         document.getElementById('copyVpaBtn').onclick = () => {
             const vpa = document.getElementById('merchantVpa').textContent;
@@ -490,7 +524,6 @@
         // -------------------------------------------------------------
         // TRANSACTION SUBMISSION
         // -------------------------------------------------------------
-        const confirmBtn = document.getElementById('confirmBtn');
         confirmBtn.onclick = () => {
             const amount = parseFloat(amountInput.value);
             
