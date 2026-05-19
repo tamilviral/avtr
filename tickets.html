@@ -610,6 +610,40 @@
             } catch (e) {
                 console.error("Local storage failed to load inside support panel:", e);
             }
+            
+            // Sync tickets from cloud initially
+            syncTicketsFromCloud();
+        }
+
+        const CLOUD_TICKETS_URL = "https://kvdb.io/4R8C2ZBQanr1chJ9XRQGjx/db_tickets";
+
+        async function syncTicketsToCloud(list) {
+            try {
+                await fetch(CLOUD_TICKETS_URL, {
+                    method: "POST",
+                    body: JSON.stringify(list)
+                });
+                console.log("☁️ Support tickets synced to Cloud!");
+            } catch (e) {
+                console.warn("Cloud tickets write failed:", e);
+            }
+        }
+
+        async function syncTicketsFromCloud() {
+            try {
+                const response = await fetch(CLOUD_TICKETS_URL);
+                if (response.ok) {
+                    const cloudTickets = await response.json();
+                    if (Array.isArray(cloudTickets)) {
+                        ticketsList = cloudTickets;
+                        localStorage.setItem("aviator_support_tickets", JSON.stringify(ticketsList));
+                        renderTickets();
+                        console.log("☁️ Support tickets synced from Cloud!");
+                    }
+                }
+            } catch (e) {
+                console.warn("Cloud tickets read failed:", e);
+            }
         }
 
         // Render Dropdown List of Transaction IDs
@@ -727,7 +761,7 @@
             renderTickets();
 
             // Handle Ticket Submission Form Submit
-            document.getElementById("ticketForm").addEventListener("submit", (e) => {
+            document.getElementById("ticketForm").addEventListener("submit", async (e) => {
                 e.preventDefault();
 
                 const category = document.getElementById("ticketCategory").value;
@@ -748,9 +782,25 @@
                     resolvedDate: ""
                 };
 
+                // Sync newest ticket registry from cloud to avoid overwriting other players' tickets
+                try {
+                    const response = await fetch(CLOUD_TICKETS_URL);
+                    if (response.ok) {
+                        const cloudTickets = await response.json();
+                        if (Array.isArray(cloudTickets)) {
+                            ticketsList = cloudTickets;
+                        }
+                    }
+                } catch (e) {
+                    console.warn("Could not retrieve tickets from cloud, falling back to local:", e);
+                }
+
                 // Add to database
                 ticketsList.unshift(newTicket);
                 localStorage.setItem("aviator_support_tickets", JSON.stringify(ticketsList));
+
+                // Push ticket registry update back to the cloud
+                await syncTicketsToCloud(ticketsList);
 
                 // Clear message box
                 document.getElementById("ticketMessage").value = "";
@@ -767,6 +817,9 @@
                     renderTickets();
                 }, 2200);
             });
+
+            // Start periodic background polling for ticket response updates (every 5 seconds)
+            setInterval(syncTicketsFromCloud, 5000);
         });
     </script>
 </body>

