@@ -1326,6 +1326,44 @@
         window.triggerPhoneVerification();
     };
 
+    window.deleteSelfPilotAccount = function() {
+        if (!confirm("Are you absolutely sure you want to permanently delete your pilot registry? This action CANNOT be undone.")) return;
+        if (!confirm("FINAL CONFIRMATION: Are you sure you want to wipe all wallet balances, stats, and tickets?")) return;
+        
+        const targetEmail = currentUser.email.toLowerCase();
+        
+        // Remove from db_users
+        let dbUsers = JSON.parse(localStorage.getItem('aviator_db_users')) || [];
+        dbUsers = dbUsers.filter(u => u.email.toLowerCase() !== targetEmail);
+        localStorage.setItem('aviator_db_users', JSON.stringify(dbUsers));
+        
+        // Prune tickets
+        let tickets = JSON.parse(localStorage.getItem('aviator_tickets')) || [];
+        tickets = tickets.filter(t => t.email.toLowerCase() !== targetEmail);
+        localStorage.setItem('aviator_tickets', JSON.stringify(tickets));
+        
+        // Prune txns
+        let txns = JSON.parse(localStorage.getItem('aviator_txns')) || [];
+        txns = txns.filter(t => t.email.toLowerCase() !== targetEmail);
+        localStorage.setItem('aviator_txns', JSON.stringify(txns));
+        
+        // Clear session
+        localStorage.removeItem('aviator_session');
+        localStorage.removeItem('aviator_user');
+        
+        // Show terminal de-authorization overlay
+        const overlay = document.getElementById('logoutOverlay');
+        const header = overlay.querySelector('div:nth-child(2)');
+        const desc = overlay.querySelector('div:nth-child(3)');
+        if (header) header.textContent = "WIPING PILOT DATA REGISTRY";
+        if (desc) desc.textContent = "Purging transaction blocks, tickets, and assets...";
+        overlay.classList.add('active');
+        
+        setTimeout(() => {
+            window.location.href = "login.html";
+        }, 2500);
+    };
+
     // -------------------------------------------------------------
     // 10. CHAT SIMULATION & CHAT ROOMS
     // -------------------------------------------------------------
