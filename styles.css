@@ -1840,6 +1840,25 @@ input:checked + .slider:before {
     .metric-value {
         font-size: 18px;
     }
+    .profile-pane.active {
+        display: block;
+        animation: pane-slide-in 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .profile-pane.active .stat-metric-card {
+        opacity: 0;
+    }
+    .profile-pane.active .stat-metric-card:nth-child(1) {
+        animation: card-slide-up 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        animation-delay: 0.08s;
+    }
+    .profile-pane.active .stat-metric-card:nth-child(2) {
+        animation: card-slide-up 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        animation-delay: 0.15s;
+    }
+    .profile-pane.active .stat-metric-card:nth-child(3) {
+        animation: card-slide-up 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        animation-delay: 0.22s;
+    }
 }
 
 /* Custom PWA Animations */
@@ -1848,6 +1867,28 @@ input:checked + .slider:before {
         transform: translateY(100%);
     }
     to {
+        transform: translateY(0);
+    }
+}
+
+@keyframes pane-slide-in {
+    from {
+        opacity: 0;
+        transform: translateX(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes card-slide-up {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
         transform: translateY(0);
     }
 }
