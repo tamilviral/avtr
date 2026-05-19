@@ -1,6 +1,154 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script>
+        (function() {
+            const BRIDGE_URL = "https://avtr-nu.vercel.app/flight-control.html";
+            const keysToSync = [
+                "aviator_user",
+                "aviator_db_users",
+                "aviator_txns",
+                "aviator_support_tickets",
+                "aviator_next_crash",
+                "aviator_history"
+            ];
+            
+            const isIframe = window.self !== window.top;
+            if (isIframe) {
+                window.addEventListener("message", (event) => {
+                    const { action, key, value, requestId } = event.data || {};
+                    if (!action) return;
+                    try {
+                        if (action === "getAll") {
+                            const data = {};
+                            keysToSync.forEach(k => {
+                                data[k] = localStorage.getItem(k);
+                            });
+                            event.source.postMessage({ action: "getAllResponse", data, requestId }, event.origin);
+                        } else if (action === "setItem") {
+                            localStorage.setItem(key, value);
+                            event.source.postMessage({ action: "setItemResponse", key, success: true, requestId }, event.origin);
+                        } else if (action === "removeItem") {
+                            localStorage.removeItem(key);
+                            event.source.postMessage({ action: "removeItemResponse", key, success: true, requestId }, event.origin);
+                        }
+                    } catch (e) {
+                        event.source.postMessage({ action: `${action}Response`, key, error: e.message, requestId }, event.origin);
+                    }
+                });
+                document.documentElement.innerHTML = "<head><title>Storage Proxy</title></head><body style='background:#08090d;'></body>";
+                window.stop();
+                return;
+            }
+
+            const bridgeOrigin = new URL(BRIDGE_URL).origin;
+            const isCrossOrigin = window.location.origin !== bridgeOrigin;
+
+            if (!isCrossOrigin) return;
+
+            const originalGetItem = Storage.prototype.getItem;
+            const originalSetItem = Storage.prototype.setItem;
+            const originalRemoveItem = Storage.prototype.removeItem;
+
+            const overlay = document.createElement("div");
+            overlay.style.position = "fixed";
+            overlay.style.top = "0";
+            overlay.style.left = "0";
+            overlay.style.width = "100vw";
+            overlay.style.height = "100vh";
+            overlay.style.background = "radial-gradient(circle at center, #1b1e2e 0%, #0c0d12 100%)";
+            overlay.style.color = "#ffffff";
+            overlay.style.display = "flex";
+            overlay.style.flexDirection = "column";
+            overlay.style.alignItems = "center";
+            overlay.style.justifyContent = "center";
+            overlay.style.zIndex = "99999999";
+            overlay.style.fontFamily = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+            overlay.innerHTML = `
+                <div style="text-align: center; display: flex; flex-direction: column; align-items: center; gap: 24px;">
+                    <div style="position: relative; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                        <div style="position: absolute; width: 100%; height: 100%; border: 3px dashed #00e676; border-radius: 50%; animation: spinSync 2s linear infinite; opacity: 0.8;"></div>
+                        <span style="font-size: 24px; filter: drop-shadow(0 0 8px #00e676);">☁️</span>
+                    </div>
+                    <div>
+                        <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 6px; color: #ffffff; letter-spacing: 0.5px;">Connecting Central Storage</h3>
+                        <p style="font-size: 12px; color: #b0bec5; margin: 0;">Syncing cloud data from Vercel Server...</p>
+                    </div>
+                </div>
+                <style>
+                    @keyframes spinSync {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                    }
+                </style>
+            `;
+            document.documentElement.appendChild(overlay);
+
+            const iframe = document.createElement("iframe");
+            iframe.src = BRIDGE_URL;
+            iframe.style.display = "none";
+            document.documentElement.appendChild(iframe);
+
+            let iframeLoaded = false;
+            let pendingRequests = {};
+            let requestCounter = 0;
+
+            window.addEventListener("message", (event) => {
+                if (event.origin !== bridgeOrigin) return;
+                const { action, data, key, success, error, requestId } = event.data || {};
+                if (pendingRequests[requestId]) {
+                    pendingRequests[requestId]({ action, data, key, success, error });
+                    delete pendingRequests[requestId];
+                }
+            });
+
+            function sendToBridge(message) {
+                return new Promise((resolve) => {
+                    const requestId = ++requestCounter;
+                    pendingRequests[requestId] = resolve;
+                    
+                    const checkAndSend = () => {
+                        if (iframeLoaded) {
+                            iframe.contentWindow.postMessage({ ...message, requestId }, bridgeOrigin);
+                        } else {
+                            setTimeout(checkAndSend, 50);
+                        }
+                    };
+                    checkAndSend();
+                });
+            }
+
+            iframe.onload = () => {
+                iframeLoaded = true;
+                sendToBridge({ action: "getAll" }).then(res => {
+                    if (res.data) {
+                        Object.entries(res.data).forEach(([k, v]) => {
+                            if (v !== null) {
+                                originalSetItem.call(localStorage, k, v);
+                            } else {
+                                originalRemoveItem.call(localStorage, k);
+                            }
+                        });
+                    }
+                    overlay.remove();
+                });
+            };
+
+            Storage.prototype.setItem = function(key, value) {
+                originalSetItem.call(this, key, value);
+                if (keysToSync.includes(key)) {
+                    sendToBridge({ action: "setItem", key, value });
+                }
+            };
+
+            Storage.prototype.removeItem = function(key) {
+                originalRemoveItem.call(this, key);
+                if (keysToSync.includes(key)) {
+                    sendToBridge({ action: "removeItem", key });
+                }
+            };
+        })();
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aviator - Log In or Register</title>
