@@ -439,6 +439,41 @@
     <script>
         // Database Initialization
         let db = [];
+        const BUCKET_URL = "https://kvdb.io/6vHjZxBjCQQy13gYgvEekJ/db_users";
+
+        async function syncDatabaseFromCloud() {
+            try {
+                const response = await fetch(BUCKET_URL);
+                if (response.ok) {
+                    const cloudDb = await response.json();
+                    if (Array.isArray(cloudDb) && cloudDb.length > 0) {
+                        db = cloudDb;
+                        // Retroactively assign defaults
+                        db.forEach(u => {
+                            if (!u.phone) u.phone = "9876543210";
+                            if (!u.status) u.status = "ACTIVE";
+                        });
+                        localStorage.setItem("aviator_db_users", JSON.stringify(db));
+                        console.log("☁️ User database successfully synchronized from Cloud!", db);
+                    }
+                }
+            } catch (e) {
+                console.warn("Could not sync database from cloud, falling back to local database:", e);
+            }
+        }
+
+        async function syncDatabaseToCloud() {
+            try {
+                await fetch(BUCKET_URL, {
+                    method: "POST",
+                    body: JSON.stringify(db)
+                });
+                console.log("☁️ User database successfully uploaded to Cloud!");
+            } catch (e) {
+                console.error("Failed to upload database to cloud:", e);
+            }
+        }
+
         try {
             const savedDb = localStorage.getItem("aviator_db_users");
             if (savedDb) {
@@ -474,6 +509,9 @@
             console.error("Local Storage database failed to load:", e);
         }
 
+        // Trigger immediate background sync
+        syncDatabaseFromCloud();
+
         // Toggle panel forms
         document.getElementById("toRegister").addEventListener("click", () => {
             document.getElementById("loginFormPane").style.display = "none";
@@ -488,13 +526,16 @@
         });
 
         // Handle Login
-        document.getElementById("loginForm").addEventListener("submit", (e) => {
+        document.getElementById("loginForm").addEventListener("submit", async (e) => {
             e.preventDefault();
             const identifier = document.getElementById("loginIdentifier").value.trim().toLowerCase();
             const pass = document.getElementById("loginPassword").value;
             const err = document.getElementById("loginError");
 
             err.style.display = "none";
+
+            // Sync from cloud first to verify newest credentials
+            await syncDatabaseFromCloud();
 
             // Find user in DB by Email OR Phone
             const cleanId = identifier.replace(/[^0-9a-z]/g, "");
@@ -543,7 +584,7 @@
         });
 
         // Handle Registration
-        document.getElementById("registerForm").addEventListener("submit", (e) => {
+        document.getElementById("registerForm").addEventListener("submit", async (e) => {
             e.preventDefault();
             const nick = document.getElementById("regNickname").value.trim();
             const email = document.getElementById("regEmail").value.trim().toLowerCase();
@@ -552,6 +593,9 @@
             const err = document.getElementById("registerError");
 
             err.style.display = "none";
+
+            // Sync from cloud first to ensure unique checks are complete
+            await syncDatabaseFromCloud();
 
             // Unique Check (Nickname, Email, or Phone)
             const cleanPhone = phone.replace(/[^0-9]/g, "");
@@ -585,6 +629,9 @@
 
             db.push(newUser);
             localStorage.setItem("aviator_db_users", JSON.stringify(db));
+
+            // Sync registration to Cloud!
+            await syncDatabaseToCloud();
 
             // Play success sound
             playChime();

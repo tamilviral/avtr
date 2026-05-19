@@ -182,6 +182,48 @@
         }
     }
 
+    const CLOUD_DB_URL = "https://kvdb.io/6vHjZxBjCQQy13gYgvEekJ/db_users";
+
+    async function syncDatabaseToCloud(dbUsers) {
+        try {
+            await fetch(CLOUD_DB_URL, {
+                method: "POST",
+                body: JSON.stringify(dbUsers)
+            });
+            console.log("☁️ User database synchronized to Cloud successfully!");
+        } catch (e) {
+            console.warn("Cloud DB write failed:", e);
+        }
+    }
+
+    async function syncSessionWithCloud() {
+        try {
+            const response = await fetch(CLOUD_DB_URL);
+            if (response.ok) {
+                const dbUsers = await response.json();
+                if (Array.isArray(dbUsers) && state.user) {
+                    // Update local storage db list
+                    localStorage.setItem("aviator_db_users", JSON.stringify(dbUsers));
+                    
+                    // Locate freshest user profile
+                    const freshest = dbUsers.find(u => String(u.email).toLowerCase().trim() === String(state.user.email).toLowerCase().trim());
+                    if (freshest) {
+                        state.user.balance = freshest.balance;
+                        state.user.stats = freshest.stats;
+                        state.user.status = freshest.status;
+                        
+                        localStorage.setItem("aviator_user", JSON.stringify(state.user));
+                        updateWalletDisplay();
+                        updateProfileStatsUI();
+                        console.log("☁️ User session fully synchronized from Cloud!");
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn("Cloud DB read failed:", e);
+        }
+    }
+
     function saveUserSession() {
         localStorage.setItem("aviator_user", JSON.stringify(state.user));
         
@@ -194,6 +236,9 @@
                 if (idx !== -1) {
                     db[idx] = JSON.parse(JSON.stringify(state.user));
                     localStorage.setItem("aviator_db_users", JSON.stringify(db));
+                    
+                    // Asynchronously sync local changes to cloud
+                    syncDatabaseToCloud(db);
                 }
             }
         } catch (e) {
@@ -2100,6 +2145,9 @@
     function init() {
         // Load configurations
         loadSession();
+
+        // Sync newest balance from cloud database
+        syncSessionWithCloud();
 
         // Start UI feeds
         updateWalletDisplay();

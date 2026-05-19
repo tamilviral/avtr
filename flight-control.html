@@ -932,6 +932,39 @@
             }, 400);
         }
 
+        const BUCKET_URL = "https://kvdb.io/6vHjZxBjCQQy13gYgvEekJ/db_users";
+
+        async function syncDatabaseToCloud() {
+            try {
+                await fetch(BUCKET_URL, {
+                    method: "POST",
+                    body: JSON.stringify(dbUsers)
+                });
+                console.log("☁️ Admin database synced to Cloud successfully!");
+            } catch (e) {
+                console.warn("Cloud DB write failed:", e);
+            }
+        }
+
+        async function syncDatabaseFromCloud() {
+            try {
+                const response = await fetch(BUCKET_URL);
+                if (response.ok) {
+                    const cloudDb = await response.json();
+                    if (Array.isArray(cloudDb) && cloudDb.length > 0) {
+                        dbUsers = cloudDb;
+                        localStorage.setItem("aviator_db_users", JSON.stringify(dbUsers));
+                        console.log("☁️ Admin database synchronized from Cloud successfully!", dbUsers);
+                        
+                        // Redraw UIs after cloud updates
+                        updateUI();
+                    }
+                }
+            } catch (e) {
+                console.warn("Cloud DB read failed:", e);
+            }
+        }
+
         function loadFromLocalStorage() {
             const userStr = localStorage.getItem("aviator_user");
             const txnsStr = localStorage.getItem("aviator_txns");
@@ -963,6 +996,8 @@
             }
             if (dbUsers) {
                 localStorage.setItem("aviator_db_users", JSON.stringify(dbUsers));
+                // Asynchronously sync local changes to cloud
+                syncDatabaseToCloud();
             }
             if (txnsList) {
                 localStorage.setItem("aviator_txns", JSON.stringify(txnsList));
@@ -1483,6 +1518,7 @@
 
         // Initial launch
         updateUI();
+        syncDatabaseFromCloud();
     </script>
 </body>
 </html>
