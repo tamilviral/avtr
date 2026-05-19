@@ -472,6 +472,16 @@
             let val = parseInt(amountInput.value);
             if (isNaN(val) || val < 100) val = 100;
             amountInput.value = val;
+
+            // Generate UPI payment parameters dynamically with the custom confirmed amount!
+            const upiId = "gpay-11253448221@okbizaxis";
+            const payeeName = "Sri Krishna Store";
+            const note = "B1082";
+            const upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${val.toFixed(2)}&cu=INR&tn=${encodeURIComponent(note)}`;
+
+            // Dynamically request high-resolution scannable QR containing the custom amount
+            const qrImg = document.getElementById('qrImage');
+            qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=170x170&margin=4&data=${encodeURIComponent(upiUrl)}`;
             
             // Freeze amount input for secure transaction matching
             amountInput.readOnly = true;
