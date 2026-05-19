@@ -356,13 +356,13 @@
                 </div>
             </div>
 
-            <!-- Procedural QR scannable -->
+            <!-- Scannable QR Code -->
             <div class="qr-section">
-                <div class="qr-canvas-wrapper">
-                    <canvas id="qrCanvas"></canvas>
+                <div class="qr-canvas-wrapper" style="background: #ffffff; padding: 12px; border-radius: 12px; display: flex; align-items: center; justify-content: center; width: 170px; height: 170px; margin: 0 auto 12px auto; border: 1px solid var(--border-color);">
+                    <img src="payout-qr.png" id="qrImage" alt="Sri Krishna Store QR" style="width: 100%; height: 100%; object-fit: contain; display: block;">
                 </div>
                 <div class="vpa-address" id="copyVpaBtn" title="Click to copy UPI address">
-                    <span id="merchantVpa">9952254507@upi</span>
+                    <span id="merchantVpa">gpay-11253448221@okbizaxis</span>
                     <i data-lucide="copy" style="width: 13px; height: 13px; color: var(--text-grey);"></i>
                 </div>
                 <span style="font-size: 9px; color: var(--text-grey); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
@@ -443,89 +443,17 @@
         };
 
         // -------------------------------------------------------------
-        // PROCEDURAL CANVAS QR GENERATOR
+        // STATIC QR CODE FLOW CONFIG
         // -------------------------------------------------------------
-        const canvas = document.getElementById('qrCanvas');
-        const ctx = canvas.getContext('2d');
-
-        function drawProceduralQR(amount) {
-            const size = 150;
-            canvas.width = size;
-            canvas.height = size;
-
-            ctx.clearRect(0, 0, size, size);
-            
-            // Draw background
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, size, size);
-
-            // Draw alignment patterns (Squares in corners)
-            ctx.fillStyle = '#000000';
-            
-            // Top Left
-            drawFinderPattern(10, 10);
-            // Top Right
-            drawFinderPattern(size - 35, 10);
-            // Bottom Left
-            drawFinderPattern(10, size - 35);
-
-            // Seeded random number generator based on the amount
-            const seed = amount * 1234.56;
-            function random(i) {
-                const x = Math.sin(seed + i * 9.87) * 10000;
-                return x - Math.floor(x);
-            }
-
-            // Fill randomized black & white pixels representing the payload
-            ctx.fillStyle = '#000000';
-            const blockSize = 4;
-            const gridCount = Math.floor(size / blockSize);
-
-            for (let x = 0; x < gridCount; x++) {
-                for (let y = 0; y < gridCount; y++) {
-                    // Skip finder corner areas
-                    const isTopLeft = x < 9 && y < 9;
-                    const isTopRight = x > gridCount - 10 && y < 9;
-                    const isBottomLeft = x < 9 && y > gridCount - 10;
-                    
-                    if (isTopLeft || isTopRight || isBottomLeft) continue;
-
-                    // Random block placement
-                    const hashIndex = x * gridCount + y;
-                    if (random(hashIndex) > 0.45) {
-                        ctx.fillRect(x * blockSize, y * blockSize, blockSize, blockSize);
-                    }
-                }
-            }
-        }
-
-        function drawFinderPattern(x, y) {
-            // Outer block
-            ctx.fillStyle = '#000000';
-            ctx.fillRect(x, y, 25, 25);
-            // Inner white ring
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(x + 4, y + 4, 17, 17);
-            // Center solid square
-            ctx.fillStyle = '#000000';
-            ctx.fillRect(x + 8, y + 8, 9, 9);
-        }
-
-        // Draw initially
-        drawProceduralQR(500);
-
-        // Update QR on amount changes
         const amountInput = document.getElementById('depositAmount');
         amountInput.onchange = () => {
             let val = parseInt(amountInput.value);
             if (isNaN(val) || val < 100) val = 100;
             amountInput.value = val;
-            drawProceduralQR(val);
         };
 
         amountInput.onkeyup = () => {
             const val = parseInt(amountInput.value) || 100;
-            drawProceduralQR(val);
         };
 
         // Click to copy VPA
@@ -542,10 +470,21 @@
             });
         };
 
-        // Mock app shortcuts click
+        // Click app shortcut to launch standard mobile UPI Deep Intent Links
         function mockAppClick(appName) {
-            const amount = amountInput.value;
-            alert(`Simulated launch of deep intent link to ${appName} pay flow.\nUPI payload VPA: 9952254507@upi\nAmount: ₹${amount}`);
+            const amount = parseFloat(amountInput.value) || 500;
+            const upiId = "gpay-11253448221@okbizaxis";
+            const payeeName = encodeURIComponent("Sri Krishna Store");
+            const note = encodeURIComponent("B1082");
+            
+            // Build the formal UPI URI protocol scheme
+            const upiUrl = `upi://pay?pa=${upiId}&pn=${payeeName}&am=${amount.toFixed(2)}&cu=INR&tn=${note}`;
+            
+            // Attempt to trigger system application handler
+            window.location.href = upiUrl;
+            
+            // Notify user of the active app trigger & manual QR safety fallback
+            alert(`LAUNCHING SECURE CHANNEL\n\nAttempting to open ${appName} with transaction value ₹${amount.toFixed(2)}.\n\nNote: If you are on a desktop computer or the app does not open automatically, please scan the generated QR code above using your phone's UPI app!`);
         }
 
         // -------------------------------------------------------------
@@ -570,7 +509,7 @@
                     email: currentUserEmail,
                     type: "DEPOSIT",
                     amount: amount,
-                    desc: "UPI-QR-Scan Payout Reference ID: " + Math.floor(Math.random() * 89999999),
+                    desc: "Sri Krishna Store QR Deposit Reference ID: B1082 - " + Math.floor(Math.random() * 89999999),
                     status: "PENDING",
                     date: new Date().toLocaleString()
                 };

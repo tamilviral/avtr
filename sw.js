@@ -12,7 +12,8 @@ const STATIC_ASSETS = [
     './login.html',
     './gateway.html',
     './tickets.html',
-    './manifest.json'
+    './manifest.json',
+    './payout-qr.png'
 ];
 
 // Installation: Cache initial offline resources
