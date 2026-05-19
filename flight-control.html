@@ -478,7 +478,10 @@
             
             <!-- Panel 1: Player Database -->
             <div class="admin-panel active" id="panelPlayers">
-                <h3 class="panel-title">👥 Registered Players Database</h3>
+                <div class="panel-title" style="display:flex; justify-content:space-between; align-items:center; width:100%; border-bottom: 1px dashed var(--border-color); padding-bottom: 12px; margin-bottom: 8px;">
+                    <span style="display:flex; align-items:center; gap:8px;">👥 Registered Players Database</span>
+                    <button class="submit-btn" id="resetDbBtn" style="background-color:var(--primary-red); padding:6px 14px; font-size:12px; width:auto; border-radius:6px; margin:0; box-shadow: 0 4px 12px rgba(226, 27, 60, 0.3);">Reset Database</button>
+                </div>
                 <div class="stats-grid">
                     <div class="stat-card">
                         <span class="stat-label">Active Pilot</span>
@@ -1442,6 +1445,77 @@
             } else {
                 showNotification("Error: Player record not found in registered database!", "error");
             }
+        });
+
+        // Reset Database click listener
+        document.getElementById("resetDbBtn").addEventListener("click", async () => {
+            if (!confirm("🚨 WARNING: Are you sure you want to RESET the entire system database?\n\nThis will wipe all custom registered accounts, transaction logs, and support tickets globally, resetting the application to fresh defaults!")) {
+                return;
+            }
+
+            // Create default user profile to prevent lockouts
+            const defaultUser = {
+                nickname: "LuckyPilot",
+                email: "pilot@aviator.com",
+                phone: "9876543210",
+                password: "password123",
+                balance: 10000.00,
+                status: "ACTIVE",
+                stats: {
+                    joined: new Date().toLocaleDateString(),
+                    rounds: 0,
+                    wins: 0,
+                    highest: 0.00,
+                    profit: 0.00
+                }
+            };
+
+            // Reset local variables
+            dbUsers = [defaultUser];
+            txnsList = [];
+            ticketsList = [
+                {
+                    id: "TKT842910",
+                    userEmail: "pilot@aviator.com",
+                    userNickname: "LuckyPilot",
+                    date: new Date().toLocaleString(),
+                    category: "Deposit Query",
+                    subject: "Transaction delayed",
+                    message: "Welcome to Aviator Support! Your system database has been fresh-initialized.",
+                    status: "RESOLVED",
+                    adminResponse: "Database reset completed successfully."
+                }
+            ];
+
+            // Save to localStorage
+            localStorage.setItem("aviator_db_users", JSON.stringify(dbUsers));
+            localStorage.setItem("aviator_txns", JSON.stringify(txnsList));
+            localStorage.setItem("aviator_support_tickets", JSON.stringify(ticketsList));
+
+            // Sync resets immediately to the Cloud!
+            try {
+                showNotification("Syncing database reset to cloud...", "info");
+                
+                // 1. Sync User DB
+                await fetch("https://kvdb.io/4R8C2ZBQanr1chJ9XRQGjx/db_users", {
+                    method: "POST",
+                    body: JSON.stringify(dbUsers)
+                });
+                
+                // 2. Sync Transactions DB
+                await fetch("https://kvdb.io/4R8C2ZBQanr1chJ9XRQGjx/db_txns", {
+                    method: "POST",
+                    body: JSON.stringify(txnsList)
+                });
+
+                showNotification("☁️ Cloud database reset and synced successfully!", "success");
+            } catch (e) {
+                console.error("Failed to sync reset to cloud:", e);
+                showNotification("Database reset locally, but cloud sync failed.", "warning");
+            }
+
+            // Redraw panel UI
+            updateUI();
         });
 
         // Rigging Form submits
