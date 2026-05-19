@@ -338,9 +338,32 @@
             to { transform: scale(1); opacity: 1; }
         }
 
-        @keyframes pulse-orange {
-            from { opacity: 0.4; }
-            to { opacity: 1; }
+        @media (max-width: 480px) {
+            body {
+                padding: 12px 8px;
+            }
+            .checkout-container {
+                max-width: 100%;
+                border-radius: 12px;
+                margin: 0;
+            }
+            .summary-panel, .qr-panel {
+                padding: 20px 16px;
+                gap: 16px;
+            }
+            .price-val {
+                font-size: 26px;
+            }
+            .qr-card {
+                width: 180px;
+                height: 180px;
+                padding: 12px;
+            }
+            .success-text {
+                padding: 0 16px;
+                font-size: 13px;
+                max-width: 100%;
+            }
         }
     </style>
 </head>

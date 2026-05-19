@@ -514,7 +514,8 @@ button {
 
 .amount-input {
     flex: 1;
-    width: 100px;
+    width: 100%;
+    min-width: 0;
     background: transparent;
     border: none;
     outline: none;
@@ -1740,5 +1741,35 @@ input:checked + .slider:before {
     .gateway-overlay {
         max-width: 94vw;
         width: 360px;
+    }
+    .live-mult {
+        font-size: 48px;
+    }
+    .auth-wrapper {
+        padding: 24px 16px;
+        max-width: calc(100vw - 32px);
+    }
+    .profile-content {
+        padding: 16px 12px;
+    }
+    .pane-title {
+        font-size: 16px;
+        margin-bottom: 12px;
+    }
+    .stats-grid {
+        grid-template-columns: 1fr !important;
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+    .edit-details-grid {
+        grid-template-columns: 1fr !important;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+    .stat-metric-card {
+        padding: 12px;
+    }
+    .metric-value {
+        font-size: 18px;
     }
 }

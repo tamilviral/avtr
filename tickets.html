@@ -418,6 +418,30 @@
             from { transform: scale(0.5); opacity: 0; }
             to { transform: scale(1); opacity: 1; }
         }
+
+        @media (max-width: 480px) {
+            .portal-header {
+                padding: 12px 16px;
+                flex-direction: column;
+                gap: 10px;
+                align-items: center;
+            }
+            .header-logo {
+                font-size: 16px;
+            }
+            .return-btn {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+            .glass-panel {
+                padding: 20px 16px;
+            }
+            .portal-container {
+                padding: 0 16px;
+                margin: 12px auto;
+                gap: 16px;
+            }
+        }
     </style>
 </head>
 <body>

@@ -304,6 +304,26 @@
             from { opacity: 0; transform: translateY(8px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 8px;
+            }
+            .auth-container {
+                border-radius: 16px;
+                max-width: 100%;
+            }
+            .auth-panel {
+                padding: 24px 16px;
+                gap: 16px;
+            }
+            .panel-title {
+                font-size: 20px;
+            }
+            .checkbox-container {
+                font-size: 11px;
+            }
+        }
     </style>
 </head>
 <body>
