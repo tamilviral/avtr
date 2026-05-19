@@ -252,36 +252,6 @@
                 </form>
             </div>
 
-            <!-- Account Merger Form -->
-            <div class="glass-panel" style="padding: 20px; margin-top: 20px;">
-                <h2 style="font-family:var(--font-heading); font-size:16px; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
-                    <i data-lucide="git-merge" style="width: 18px; height: 18px; color: var(--accent-green);"></i>
-                    Merge Duplicate Pilot Accounts (Mobile + Desktop Sync)
-                </h2>
-                <div style="font-size: 11px; color: var(--text-grey); margin-bottom: 16px; line-height: 1.4;">
-                    Consolidate two separate pilot accounts into a single master cloud account. This will combine balances, transaction records, and support tickets, then delete the source account.
-                </div>
-                <form id="merge-users-form" onsubmit="mergePilotAccounts(event)" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; align-items: flex-end;">
-                    <div class="input-group">
-                        <label>Source Account (Will Be Deleted)</label>
-                        <select id="merge-source" class="input-field" style="background:#1b1e2a;" required>
-                            <option value="">Select source pilot...</option>
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <label>Destination Account (Master Keep)</label>
-                        <select id="merge-dest" class="input-field" style="background:#1b1e2a;" required>
-                            <option value="">Select destination pilot...</option>
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <button type="submit" class="btn-action approve" style="padding: 10px 20px; width: 100%; height: 38px; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                            CONSOLIDATE REGISTRIES
-                        </button>
-                    </div>
-                </form>
-            </div>
-
             <!-- Users table list -->
             <div class="admin-table-container">
                 <table class="admin-table">
@@ -393,7 +363,26 @@
     </div>
 
     <script>
-        // Check session
+        // Check session and mobile restriction
+        const isMobileDevice = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) || window.innerWidth < 1024;
+        if (isMobileDevice) {
+            document.write(`
+                <div style="position:fixed; top:0; left:0; width:100vw; height:100vh; background:#090a0f; z-index:200000; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:'Outfit',sans-serif; color:#ffffff; padding: 24px; text-align: center;">
+                    <svg width="64" height="64" viewBox="0 0 24 24" style="fill: #e50914; margin-bottom: 24px; filter: drop-shadow(0 0 10px rgba(229,9,20,0.6));">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                    </svg>
+                    <h1 style="font-weight:900; font-size:22px; letter-spacing:1.5px; margin-bottom:12px; color: #e50914; text-transform: uppercase;">Command Access Blocked</h1>
+                    <p style="font-size:13px; color:rgba(255,255,255,0.7); max-width:320px; line-height:1.6; margin-bottom:24px;">
+                        Access to the Flight Command Dashboard is strictly prohibited on mobile devices. Please log in from a secure computer terminal.
+                    </p>
+                    <button onclick="window.location.href='index.html'" style="background:#e50914; color:#ffffff; border:none; padding:12px 24px; font-weight:800; border-radius:8px; font-size:12px; text-transform:uppercase; cursor:pointer; letter-spacing:0.5px; box-shadow:0 0 12px rgba(229, 9, 20, 0.4);">
+                        Return to Cockpit
+                    </button>
+                </div>
+            `);
+            window.stop();
+        }
+
         let activeUser = null;
         const savedSession = localStorage.getItem('aviator_user');
         if (!savedSession) {
@@ -480,26 +469,6 @@
                 `;
                 body.appendChild(tr);
             });
-
-            // Populate merge selectors in real-time
-            const srcSelect = document.getElementById('merge-source');
-            const destSelect = document.getElementById('merge-dest');
-            if (srcSelect && destSelect) {
-                const srcVal = srcSelect.value;
-                const destVal = destSelect.value;
-                
-                srcSelect.innerHTML = '<option value="">Select source pilot...</option>';
-                destSelect.innerHTML = '<option value="">Select destination pilot...</option>';
-                
-                dbUsers.forEach(u => {
-                    const displayName = `${u.nickname || u.email.split('@')[0]} (${u.email})`;
-                    srcSelect.innerHTML += `<option value="${u.email}">${displayName}</option>`;
-                    destSelect.innerHTML += `<option value="${u.email}">${displayName}</option>`;
-                });
-                
-                srcSelect.value = srcVal;
-                destSelect.value = destVal;
-            }
         }
 
         function updateStatusSelection(status) {
@@ -668,70 +637,6 @@
                 document.getElementById('edit-user-form').reset();
                 updateStatusSelection('ACTIVE');
                 window.currentlyEditingEmail = null;
-                renderAllData();
-            }
-        }
-
-        function mergePilotAccounts(e) {
-            e.preventDefault();
-            const source = document.getElementById('merge-source').value;
-            const dest = document.getElementById('merge-dest').value;
-            
-            if (!source || !dest) {
-                showToast("Merge Failed", "Please select both source and destination accounts.", "error");
-                return;
-            }
-            if (source.toLowerCase() === dest.toLowerCase()) {
-                showToast("Merge Failed", "Source and destination accounts cannot be the same.", "error");
-                return;
-            }
-            
-            if (confirm(`CRITICAL REGISTRY CONSOLIDATION:\n\nAre you sure you want to merge ${source} into ${dest}?\n\nThis action will:\n1. Consolidate & sum wallet balances.\n2. Reassign all transaction/rounds history.\n3. Migrate helpdesk support tickets.\n4. Safely DELETE the source account.`)) {
-                let dbUsers = JSON.parse(localStorage.getItem('aviator_db_users')) || [];
-                const srcIdx = dbUsers.findIndex(u => u.email.toLowerCase() === source.toLowerCase());
-                const destIdx = dbUsers.findIndex(u => u.email.toLowerCase() === dest.toLowerCase());
-                
-                if (srcIdx === -1 || destIdx === -1) {
-                    showToast("Merge Failed", "Could not locate pilot registry coordinates.", "error");
-                    return;
-                }
-                
-                const srcUser = dbUsers[srcIdx];
-                const destUser = dbUsers[destIdx];
-                
-                // 1. Combine Balances
-                destUser.balance += srcUser.balance;
-                
-                // Migrate profile settings if missing
-                if (!destUser.phone && srcUser.phone) destUser.phone = srcUser.phone;
-                if (!destUser.upiId && srcUser.upiId) destUser.upiId = srcUser.upiId;
-                if (!destUser.bankDetails && srcUser.bankDetails) destUser.bankDetails = srcUser.bankDetails;
-                
-                // 2. Reassign Transactions
-                let txns = JSON.parse(localStorage.getItem('aviator_txns')) || [];
-                txns.forEach(t => {
-                    if (t.email.toLowerCase() === source.toLowerCase()) {
-                        t.email = destUser.email;
-                    }
-                });
-                localStorage.setItem('aviator_txns', JSON.stringify(txns));
-                
-                // 3. Reassign Tickets
-                let tickets = JSON.parse(localStorage.getItem('aviator_tickets')) || [];
-                tickets.forEach(t => {
-                    if (t.email.toLowerCase() === source.toLowerCase()) {
-                        t.email = destUser.email;
-                    }
-                });
-                localStorage.setItem('aviator_tickets', JSON.stringify(tickets));
-                
-                // 4. Delete Source User
-                dbUsers.splice(srcIdx, 1);
-                
-                localStorage.setItem('aviator_db_users', JSON.stringify(dbUsers));
-                showToast("Consolidation Success", `Successfully merged ${source} into ${dest}.`, "success");
-                
-                document.getElementById('merge-users-form').reset();
                 renderAllData();
             }
         }
