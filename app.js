@@ -64,6 +64,73 @@
         chatLogs: []
     };
 
+    function seedRandom(seedStr) {
+        let h = 0;
+        for (let i = 0; i < seedStr.length; i++) {
+            h = Math.imul(31, h) + seedStr.charCodeAt(i) | 0;
+        }
+        let a = h;
+        return function() {
+            a = (Math.imul(1664525, a) + 1013904223) | 0;
+            return (a >>> 0) / 4294967296;
+        };
+    }
+
+    function getActiveRoundState(T) {
+        const ONE_HOUR = 3600000;
+        const hourStart = T - (T % ONE_HOUR);
+        
+        let t = hourStart;
+        
+        while (true) {
+            const lobbyDurationMs = 5000; // 5 seconds lobby countdown
+            const crashFreezeDurationMs = 3500; // 3.5 seconds crash display
+            
+            // Generate crash multiplier deterministically for round starting at t
+            const seedStr = "aviator_round_" + t;
+            const rand = seedRandom(seedStr);
+            let randomPercent = rand() * 99;
+            let crashMultiplier = 1.01 + 0.99 * (99 / (100 - randomPercent));
+            if (crashMultiplier > 5000) crashMultiplier = 5000;
+            if (rand() < 0.03) {
+                crashMultiplier = 1.00;
+            }
+            
+            const flightDurationMs = (Math.log(crashMultiplier) / 0.065) * 1000;
+            
+            const lobbyEnd = t + lobbyDurationMs;
+            const flightEnd = lobbyEnd + flightDurationMs;
+            const roundEnd = flightEnd + crashFreezeDurationMs;
+            
+            if (T >= t && T < roundEnd) {
+                return {
+                    roundStart: t,
+                    lobbyEnd: lobbyEnd,
+                    flightEnd: flightEnd,
+                    roundEnd: roundEnd,
+                    crashMultiplier: crashMultiplier,
+                    seed: seedStr.substring(14)
+                };
+            }
+            
+            t = roundEnd;
+        }
+    }
+
+    function getRecentHistory(T, count = 20) {
+        const history = [];
+        let rState = getActiveRoundState(T);
+        let t = rState.roundStart;
+        
+        for (let i = 0; i < count; i++) {
+            const prevT = t - 1000; // go back 1 second before this round started
+            rState = getActiveRoundState(prevT);
+            history.push(rState.crashMultiplier);
+            t = rState.roundStart;
+        }
+        return history;
+    }
+
     // Initialize LocalStorage and user profiles
     function loadSession() {
         try {
@@ -246,100 +313,12 @@
     }
 
     function restoreGameState() {
-        const gameState = localStorage.getItem("aviator_game_state");
-        const lobbyStart = localStorage.getItem("aviator_lobby_start");
-        const flightStart = localStorage.getItem("aviator_flight_start");
-        const crashMultStr = localStorage.getItem("aviator_crash_mult");
-
         // Load persisted panel bet details
         loadPanelsState();
 
-        if (gameState === "FLYING" && flightStart && crashMultStr) {
-            const crashVal = parseFloat(crashMultStr);
-            const elapsed = (Date.now() - parseInt(flightStart)) / 1000;
-            const currentMult = Math.pow(Math.E, 0.065 * elapsed);
-
-            if (currentMult < crashVal) {
-                // The plane is STILL flying! Continue the active round!
-                console.log(`[RESTORE] Active flight in progress! Resuming at elapsed: ${elapsed.toFixed(2)}s | Mult: ${currentMult.toFixed(2)}x`);
-                state.crashMultiplier = crashVal;
-                state.elapsedSeconds = elapsed;
-                state.activeMultiplier = currentMult;
-                
-                startFlightPhase(true); // Call with isRestore = true!
-                return;
-            } else {
-                // The plane has crashed while we were away! Show crashed state and schedule next round!
-                console.log(`[RESTORE] Flight crashed while away at ${crashVal.toFixed(2)}x!`);
-                state.activeMultiplier = crashVal;
-                
-                // Set state to crashed directly
-                state.gameState = "CRASHED";
-                document.getElementById("timerOverlay").style.display = "none";
-                document.getElementById("multiplierOverlay").style.display = "block";
-                document.getElementById("liveMultiplier").innerText = "FLEW AWAY!";
-                document.getElementById("liveMultiplier").style.color = "var(--primary-red)";
-                document.getElementById("flightSubtext").innerText = `@ ${crashVal.toFixed(2)}x`;
-                document.getElementById("flightSubtext").style.color = "var(--primary-red)";
-
-                // Log results
-                state.roundHistory.unshift(crashVal);
-                if (state.roundHistory.length > 24) state.roundHistory.pop();
-                localStorage.setItem("aviator_history", JSON.stringify(state.roundHistory));
-                updateMultiplierRibbon();
-
-                // Clear storage and schedule fresh lobby
-                localStorage.removeItem("aviator_flight_start");
-                localStorage.removeItem("aviator_crash_mult");
-                
-                setTimeout(() => {
-                    startLobbyPhase();
-                }, 2000);
-                return;
-            }
-        } else if (gameState === "LOBBY" && lobbyStart) {
-            const elapsed = (Date.now() - parseInt(lobbyStart)) / 1000;
-            if (elapsed < 5.0) {
-                // Lobby countdown is still active! Continue the countdown!
-                const remaining = 5.0 - elapsed;
-                console.log(`[RESTORE] Resuming lobby countdown with ${remaining.toFixed(1)}s remaining.`);
-                
-                state.gameState = "LOBBY";
-                state.countdownTime = remaining;
-                state.activeMultiplier = 1.00;
-                state.elapsedSeconds = 0;
-
-                document.getElementById("liveMultiplier").innerText = "1.00x";
-                document.getElementById("liveMultiplier").style.color = "#ffffff";
-                document.getElementById("flightSubtext").innerText = "Waiting for next round";
-                document.getElementById("timerOverlay").style.display = "flex";
-                document.getElementById("multiplierOverlay").style.display = "none";
-
-                // Setup panels visually
-                syncActiveBetPanels();
-
-                const timerInterval = setInterval(() => {
-                    if (state.gameState !== "LOBBY") {
-                        clearInterval(timerInterval);
-                        return;
-                    }
-                    state.countdownTime -= 0.1;
-                    if (state.countdownTime <= 0) {
-                        state.countdownTime = 0;
-                        clearInterval(timerInterval);
-                        startFlightPhase();
-                    }
-                    document.getElementById("timerSeconds").innerText = state.countdownTime.toFixed(1) + "s";
-                    const circleBar = document.getElementById("timerBar");
-                    const strokeOffset = 251.2 * (state.countdownTime / 5.0);
-                    circleBar.style.strokeDashoffset = 251.2 - strokeOffset;
-                }, 100);
-                return;
-            }
-        }
-
-        // Default fallback: start a fresh lobby round!
-        startLobbyPhase();
+        // Populate deterministic history ribbon so all devices start in sync
+        state.roundHistory = getRecentHistory(Date.now(), 24);
+        updateMultiplierRibbon();
     }
 
     function addTransaction(desc, type, amount, status = "SUCCESS") {
@@ -748,7 +727,128 @@
         ctx.restore();
     }
 
+    function syncGameLifecycle() {
+        const T = Date.now();
+        const active = getActiveRoundState(T);
+        
+        // Update provably fair seed display
+        const serverSeedInput = document.getElementById("fairServerSeed");
+        if (serverSeedInput) {
+            serverSeedInput.value = active.seed;
+        }
+        
+        if (T < active.lobbyEnd) {
+            // Target state: LOBBY
+            state.countdownTime = (active.lobbyEnd - T) / 1000;
+            state.activeMultiplier = 1.00;
+            state.elapsedSeconds = 0;
+            state.crashMultiplier = active.crashMultiplier;
+            
+            if (state.gameState !== "LOBBY") {
+                state.gameState = "LOBBY";
+                
+                // Reset inputs and values
+                document.getElementById("liveMultiplier").innerText = "1.00x";
+                document.getElementById("liveMultiplier").style.color = "#ffffff";
+                document.getElementById("flightSubtext").innerText = "Waiting for next round";
+                document.getElementById("flightSubtext").style.color = "var(--text-secondary)";
+                
+                document.getElementById("timerOverlay").style.display = "flex";
+                document.getElementById("multiplierOverlay").style.display = "none";
+                
+                // Place auto-bets if configured
+                processAutoBets();
+                
+                // Save panels state
+                savePanelsState();
+                
+                // Regenerate simulated players in Lobby
+                simulateLobbyBets();
+            }
+            
+            // Continuous UI updates
+            document.getElementById("timerSeconds").innerText = state.countdownTime.toFixed(1) + "s";
+            
+            // Sync timer circular progress bar ring
+            const circleBar = document.getElementById("timerBar");
+            if (circleBar) {
+                const strokeOffset = 251.2 * (state.countdownTime / 5.0);
+                circleBar.style.strokeDashoffset = 251.2 - strokeOffset;
+            }
+            
+        } else if (T >= active.lobbyEnd && T < active.flightEnd) {
+            // Target state: FLYING
+            state.elapsedSeconds = (T - active.lobbyEnd) / 1000;
+            state.activeMultiplier = Math.pow(Math.E, 0.065 * state.elapsedSeconds);
+            state.crashMultiplier = active.crashMultiplier;
+            
+            if (state.gameState !== "FLYING") {
+                state.gameState = "FLYING";
+                
+                document.getElementById("timerOverlay").style.display = "none";
+                document.getElementById("multiplierOverlay").style.display = "block";
+                document.getElementById("flightSubtext").innerText = "Keep climbing!";
+                document.getElementById("flightSubtext").style.color = "var(--success-green)";
+                
+                // Sync panel buttons to active cashout cards
+                syncActiveBetPanels();
+                
+                // Save panels state
+                savePanelsState();
+                
+                // Let the simulation loop drive player cashouts
+                triggerSimulatedCashouts();
+            }
+            
+            // Continuous check of Auto-Cashouts
+            checkAutoCashouts();
+            
+            // Engine sound tick
+            playSound("engine", state.activeMultiplier);
+            
+            // Live HUD text update
+            document.getElementById("liveMultiplier").innerText = state.activeMultiplier.toFixed(2) + "x";
+            
+        } else {
+            // Target state: CRASHED
+            state.activeMultiplier = active.crashMultiplier;
+            state.crashMultiplier = active.crashMultiplier;
+            
+            if (state.gameState !== "CRASHED") {
+                state.gameState = "CRASHED";
+                playSound("crash");
+                
+                document.getElementById("liveMultiplier").innerText = "FLEW AWAY!";
+                document.getElementById("liveMultiplier").style.color = "var(--primary-red)";
+                document.getElementById("liveMultiplier").classList.add("flew-away");
+                document.getElementById("flightSubtext").innerText = `@ ${state.activeMultiplier.toFixed(2)}x`;
+                document.getElementById("flightSubtext").style.color = "var(--primary-red)";
+                
+                setTimeout(() => {
+                    const lm = document.getElementById("liveMultiplier");
+                    if (lm) lm.classList.remove("flew-away");
+                }, 500);
+                
+                // Process personal round losses/credits
+                processRoundResults();
+                
+                // Save panels state after clearing
+                savePanelsState();
+                
+                // Log results into recent multiplier track
+                state.roundHistory.unshift(state.activeMultiplier);
+                if (state.roundHistory.length > 24) state.roundHistory.pop();
+                localStorage.setItem("aviator_history", JSON.stringify(state.roundHistory));
+                updateMultiplierRibbon();
+                
+                // Feed context comments to simulated chat
+                simulatedChatReaction(state.activeMultiplier);
+            }
+        }
+    }
+
     function renderFlightLoop(timestamp) {
+        syncGameLifecycle();
         if (!state.lastFrameTime) state.lastFrameTime = timestamp;
         const dt = (timestamp - state.lastFrameTime) / 1000;
         state.lastFrameTime = timestamp;
@@ -839,14 +939,7 @@
             scaleY = 2.0;
 
         } else if (state.gameState === "FLYING") {
-            // Calculate active flight vectors
-            state.elapsedSeconds += dt;
-            
-            // Exponential curve calculation
-            state.activeMultiplier = Math.pow(Math.E, 0.065 * state.elapsedSeconds);
-            
-            // Check Auto-Cashouts
-            checkAutoCashouts();
+            // (State variables are precisely synced by clock in syncGameLifecycle)
 
             // Dynamic Axis Scaling
             if (state.elapsedSeconds > scaleX * 0.7) {
@@ -954,10 +1047,7 @@
             // Live HUD text update
             document.getElementById("liveMultiplier").innerText = state.activeMultiplier.toFixed(2) + "x";
 
-            // Check crash trigger
-            if (state.activeMultiplier >= state.crashMultiplier) {
-                triggerCrash();
-            }
+
 
         } else if (state.gameState === "CRASHED") {
             // Draw frozen red line
@@ -1033,128 +1123,9 @@
         return result;
     }
 
-    function startLobbyPhase() {
-        state.gameState = "LOBBY";
-        state.countdownTime = 5.0;
-        state.activeMultiplier = 1.00;
-        state.elapsedSeconds = 0;
-
-        // Persist lobby start
-        localStorage.setItem("aviator_game_state", "LOBBY");
-        localStorage.setItem("aviator_lobby_start", Date.now());
-        localStorage.removeItem("aviator_flight_start");
-        localStorage.removeItem("aviator_crash_mult");
-
-        // Reset inputs and values
-        document.getElementById("liveMultiplier").innerText = "1.00x";
-        document.getElementById("liveMultiplier").style.color = "#ffffff";
-        document.getElementById("flightSubtext").innerText = "Waiting for next round";
-        document.getElementById("flightSubtext").style.color = "var(--text-secondary)";
-        
-        document.getElementById("timerOverlay").style.display = "flex";
-        document.getElementById("multiplierOverlay").style.display = "none";
-
-        // Place auto-bets if configured
-        processAutoBets();
-
-        // Save panels state
-        savePanelsState();
-
-        // Regenerate simulated players in Lobby
-        simulateLobbyBets();
-
-        // Countdown tick timer
-        const timerInterval = setInterval(() => {
-            if (state.gameState !== "LOBBY") {
-                clearInterval(timerInterval);
-                return;
-            }
-            state.countdownTime -= 0.1;
-            if (state.countdownTime <= 0) {
-                state.countdownTime = 0;
-                clearInterval(timerInterval);
-                startFlightPhase();
-            }
-
-            // Update UI elements
-            document.getElementById("timerSeconds").innerText = state.countdownTime.toFixed(1) + "s";
-            
-            // Sync timer circular progress bar ring
-            const circleBar = document.getElementById("timerBar");
-            const strokeOffset = 251.2 * (state.countdownTime / 5.0);
-            circleBar.style.strokeDashoffset = 251.2 - strokeOffset;
-
-        }, 100);
-    }
-
-    function startFlightPhase(isRestore = false) {
-        state.gameState = "FLYING";
-        if (!isRestore) {
-            state.crashMultiplier = generateCrashPoint();
-            state.elapsedSeconds = 0;
-            localStorage.setItem("aviator_game_state", "FLYING");
-            localStorage.setItem("aviator_flight_start", Date.now());
-            localStorage.setItem("aviator_crash_mult", state.crashMultiplier.toFixed(4));
-            localStorage.removeItem("aviator_lobby_start");
-        }
-
-        document.getElementById("timerOverlay").style.display = "none";
-        document.getElementById("multiplierOverlay").style.display = "block";
-        document.getElementById("flightSubtext").innerText = "Keep climbing!";
-        document.getElementById("flightSubtext").style.color = "var(--success-green)";
-
-        // Sync panel buttons to active cashout cards
-        syncActiveBetPanels();
-
-        // Save panels state
-        savePanelsState();
-        
-        // Let the simulation loop drive player cashouts
-        triggerSimulatedCashouts();
-    }
-
-    function triggerCrash() {
-        state.gameState = "CRASHED";
-        playSound("crash");
-
-        // Clear active flight state
-        localStorage.setItem("aviator_game_state", "CRASHED");
-        localStorage.removeItem("aviator_flight_start");
-        localStorage.removeItem("aviator_crash_mult");
-        localStorage.removeItem("aviator_lobby_start");
-
-        document.getElementById("liveMultiplier").innerText = "FLEW AWAY!";
-        document.getElementById("liveMultiplier").style.color = "var(--primary-red)";
-        document.getElementById("liveMultiplier").classList.add("flew-away");
-        document.getElementById("flightSubtext").innerText = `@ ${state.activeMultiplier.toFixed(2)}x`;
-        document.getElementById("flightSubtext").style.color = "var(--primary-red)";
-
-        setTimeout(() => {
-            document.getElementById("liveMultiplier").classList.remove("flew-away");
-        }, 500);
-
-        // Process personal round losses/credits
-        processRoundResults();
-
-        // Save panels state after clearing
-        savePanelsState();
-
-        // Log results into recent multiplier track
-        state.roundHistory.unshift(state.activeMultiplier);
-        if (state.roundHistory.length > 24) state.roundHistory.pop();
-        localStorage.setItem("aviator_history", JSON.stringify(state.roundHistory));
-        updateMultiplierRibbon();
-
-        // Feed context comments to simulated chat
-        simulatedChatReaction(state.activeMultiplier);
-
-        // Prepare next round countdown
-        setTimeout(() => {
-            if (state.gameState === "CRASHED") {
-                startLobbyPhase();
-            }
-        }, 3500);
-    }
+    function startLobbyPhase() {}
+    function startFlightPhase() {}
+    function triggerCrash() {}
 
     // ==========================================================================
     // 5. DOUBLE BETTING ACTION PORTALS
