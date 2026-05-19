@@ -1181,7 +1181,11 @@
         document.getElementById('provablyFairBtn').onclick = () => openModal('provablyFairModal');
         
         document.getElementById('depositTriggerBtn').onclick = () => {
-            window.open('gateway.html', '_blank');
+            const popup = window.open('gateway.html', '_blank');
+            if (!popup || popup.closed || typeof popup.closed === 'undefined') {
+                // Fallback: Popup blocker is active, navigate directly in the same window!
+                window.location.href = 'gateway.html';
+            }
         };
 
         document.getElementById('supportBubbleBtn').onclick = () => {
