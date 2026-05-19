@@ -467,7 +467,7 @@
                         email: "pilot@aviator.com",
                         phone: "9876543210",
                         password: "password123",
-                        balance: 10000.00,
+                        balance: 500.00,
                         status: "ACTIVE",
                         stats: {
                             totalGames: 0,
@@ -582,7 +582,7 @@
                 email: email,
                 phone: phone,
                 password: pass,
-                balance: 10000.00, // starting Rupee balance
+                balance: 500.00, // starting Rupee balance
                 status: "ACTIVE",
                 stats: {
                     totalGames: 0,
@@ -605,13 +605,13 @@
 
             // Set transactional balance log
             const welcomeTxns = [
-                { id: "TXN" + Math.floor(100000 + Math.random() * 900000), date: new Date().toLocaleString(), desc: "Welcome Bonus Balance", type: "DEPOSIT", amount: 10000.00, status: "SUCCESS" }
+                { id: "TXN" + Math.floor(100000 + Math.random() * 900000), date: new Date().toLocaleString(), desc: "Welcome Bonus Balance", type: "DEPOSIT", amount: 500.00, status: "SUCCESS" }
             ];
             localStorage.setItem("aviator_txns", JSON.stringify(welcomeTxns));
 
             // Show Success Overlay
             document.getElementById("successTitle").innerText = `Congratulations, ${nick}!`;
-            document.getElementById("successSub").innerText = "Claimed ₹10,000.00 INR Welcome Bonus! Loading game...";
+            document.getElementById("successSub").innerText = "Claimed ₹500.00 INR Welcome Bonus! Loading game...";
             document.getElementById("successScreen").style.display = "flex";
 
             setTimeout(() => {

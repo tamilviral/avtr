@@ -1560,18 +1560,77 @@ input:checked + .slider:before {
         right: 12px;
     }
     .profile-sidebar {
-        flex-direction: row;
-        overflow-x: auto;
-        padding: 12px;
+        flex-direction: column;
+        padding: 16px 16px 10px;
         height: auto;
         border-right: none;
         border-bottom: 1px solid var(--border-color);
+        background: rgba(0, 0, 0, 0.15);
+        gap: 12px;
     }
     .profile-header-card {
-        display: none;
+        display: flex !important;
+        align-items: center;
+        gap: 14px;
+        text-align: left;
+        padding: 0 0 12px 0;
+        margin-bottom: 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .profile-avatar-big {
+        width: 50px;
+        height: 50px;
+        border-width: 2px;
+        margin: 0;
+        box-shadow: 0 0 10px rgba(226, 27, 60, 0.2);
+    }
+    .profile-user-nick {
+        font-size: 16px;
+        font-weight: 800;
+        color: #fff;
+    }
+    .profile-user-status {
+        font-size: 10px;
+        background: rgba(0, 230, 118, 0.1);
+        border: 1px solid rgba(0, 230, 118, 0.2);
+        padding: 2px 8px;
+        border-radius: 20px;
+        display: inline-block;
+        margin-top: 4px;
     }
     .profile-side-menu {
         flex-direction: row;
+        gap: 6px;
+        padding: 0;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        width: 100%;
+    }
+    .profile-side-menu::-webkit-scrollbar {
+        display: none;
+    }
+    .profile-side-btn {
+        flex: 1;
+        justify-content: center;
+        padding: 8px 12px;
+        font-size: 12px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        white-space: nowrap;
+        text-align: center;
+        gap: 6px;
+    }
+    .profile-side-btn.active {
+        background: var(--primary-red);
+        color: #fff;
+        border-color: var(--primary-red);
+        box-shadow: 0 4px 12px var(--primary-red-glow);
+    }
+    .profile-content {
+        padding: 16px 12px;
+        height: calc(100% - 138px);
     }
 }
 
@@ -1825,20 +1884,24 @@ input:checked + .slider:before {
         margin-bottom: 12px;
     }
     .stats-grid {
-        grid-template-columns: 1fr !important;
-        gap: 10px;
+        grid-template-columns: 1fr 1fr 1fr !important;
+        gap: 6px;
         margin-bottom: 16px;
     }
     .edit-details-grid {
         grid-template-columns: 1fr !important;
-        gap: 12px;
-        margin-bottom: 16px;
+        gap: 10px;
+        margin-bottom: 12px;
     }
     .stat-metric-card {
-        padding: 12px;
+        padding: 8px 4px;
+        border-radius: 8px;
+    }
+    .metric-label {
+        font-size: 8px;
     }
     .metric-value {
-        font-size: 18px;
+        font-size: 13px;
     }
     .profile-pane.active {
         display: block;

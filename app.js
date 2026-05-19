@@ -13,7 +13,7 @@
         nickname: "LuckyPilot",
         email: "pilot@aviator.com",
         isLoggedIn: true,
-        balance: 10000.00,
+        balance: 500.00,
         stats: {
             totalGames: 0,
             winRate: 0,
@@ -166,7 +166,7 @@
                 state.transactions = JSON.parse(savedTxns);
             } else {
                 state.transactions = [
-                    { id: "TXN1001", date: new Date().toLocaleString(), desc: "Welcome Bonus Balance", type: "DEPOSIT", amount: 10000.00, status: "SUCCESS" }
+                    { id: "TXN1001", date: new Date().toLocaleString(), desc: "Welcome Bonus Balance", type: "DEPOSIT", amount: 500.00, status: "SUCCESS" }
                 ];
                 localStorage.setItem("aviator_txns", JSON.stringify(state.transactions));
             }
