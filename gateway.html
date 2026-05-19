@@ -413,7 +413,7 @@
             <p>
                 Your deposit transaction of <strong>₹<span id="loggedAmount">0.00</span></strong> has been sent to our pilot verification desk. Wallets balance updates as soon as approved!
             </p>
-            <button class="close-btn" onclick="window.close()">Close Window</button>
+            <button class="close-btn" onclick="closeGatewayWindow()">Close Window</button>
         </div>
 
     </div>
@@ -431,6 +431,16 @@
             }
         }
         checkActiveSession();
+
+        window.closeGatewayWindow = function() {
+            try {
+                window.close();
+            } catch (e) {}
+            // Fallback redirect back to index.html if window.close was blocked by browser policies
+            setTimeout(() => {
+                window.location.href = "index.html";
+            }, 100);
+        };
 
         // -------------------------------------------------------------
         // PROCEDURAL CANVAS QR GENERATOR

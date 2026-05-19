@@ -681,7 +681,10 @@
                 return;
             }
             
-            const userIdx = dbUsers.findIndex(u => u.email.toLowerCase() === txn.email.toLowerCase());
+            const userIdx = dbUsers.findIndex(u => 
+                (u.email && u.email.toLowerCase() === txn.email.toLowerCase()) ||
+                (u.phone && u.phone.trim() === txn.email.trim())
+            );
             
             if (userIdx === -1) {
                 showToast("Action Failed", "Associated player account not found.", "error");
