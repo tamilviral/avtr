@@ -312,31 +312,12 @@
     }
 
     function calculateDeterministicCrash(roundId) {
-        // 1. Check for emergency force instant crash override
-        try {
-            const forceCrash = JSON.parse(localStorage.getItem('aviator_force_crash'));
-            if (forceCrash && forceCrash.roundId === roundId && forceCrash.crashMultiplier) {
-                return parseFloat(forceCrash.crashMultiplier);
+        const mode = localStorage.getItem('aviator_crash_mode') || 'AUTO';
+        if (mode === 'MANUAL') {
+            const manualVal = parseFloat(localStorage.getItem('aviator_manual_crash_point'));
+            if (!isNaN(manualVal) && manualVal >= 1.00) {
+                return manualVal;
             }
-        } catch (e) {
-            console.error("Error reading aviator_force_crash", e);
-        }
-
-        // 2. Check for manual configuration rules override
-        try {
-            const rule = JSON.parse(localStorage.getItem('aviator_manual_rule'));
-            if (rule && rule.mode && rule.mode !== 'default') {
-                if (rule.mode === 'fixed' && rule.fixedValue) {
-                    return parseFloat(rule.fixedValue);
-                } else if (rule.mode === 'next_round' && rule.targetRoundId === roundId && rule.nextRoundValue) {
-                    return parseFloat(rule.nextRoundValue);
-                } else if (rule.mode === 'sequence' && rule.sequence && rule.sequence.length > 0) {
-                    const idx = roundId % rule.sequence.length;
-                    return parseFloat(rule.sequence[idx]);
-                }
-            }
-        } catch (e) {
-            console.error("Error reading aviator_manual_rule", e);
         }
 
         // A simple, secure pseudo-random hash generator based on SHA-256 styled seeds
@@ -826,24 +807,6 @@
         if (Math.random() < 0.6) {
             spawnBotChatMsg();
         }
-
-        // Clean up emergency/next-round overrides if we have moved past their active round
-        try {
-            const forceCrash = JSON.parse(localStorage.getItem('aviator_force_crash'));
-            if (forceCrash && state.roundId > forceCrash.roundId) {
-                localStorage.removeItem('aviator_force_crash');
-            }
-        } catch (e) {}
-
-        try {
-            const rule = JSON.parse(localStorage.getItem('aviator_manual_rule'));
-            if (rule && rule.mode === 'next_round' && state.roundId > rule.targetRoundId) {
-                rule.mode = 'default';
-                localStorage.setItem('aviator_manual_rule', JSON.stringify(rule));
-                // Sync across tabs
-                localStorage.setItem('aviator_sync_trigger', Date.now());
-            }
-        } catch (e) {}
     }
 
     function autoPlaceBetQueuer(stateKey) {

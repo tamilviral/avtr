@@ -381,7 +381,7 @@
             </div>
 
             <button type="submit" class="submit-btn" style="background: var(--accent-green); color: #000; box-shadow: 0 4px 15px var(--accent-green-glow);">
-                <span>CREATE ACCOUNT + ₹500 BONUS</span>
+                <span>CREATE PILOT ACCOUNT</span>
                 <div class="spinner" id="regSpinner"></div>
             </button>
         </form>
@@ -441,7 +441,7 @@
                     email: "pilot@aviator.com",
                     phone: "9952254507",
                     password: "password123",
-                    balance: 500.00,
+                    balance: 0.00,
                     joinDate: new Date().toLocaleString(),
                     status: "active"
                 });
@@ -602,32 +602,20 @@
                     email: email,
                     phone: phone,
                     password: pass,
-                    balance: 500.00, // starting ₹500 welcome credit
+                    balance: 0.00,
                     joinDate: new Date().toLocaleString(),
                     status: "active"
                 };
                 users.push(newUser);
                 localStorage.setItem('aviator_db_users', JSON.stringify(users));
 
-                // Log a welcome credit transaction in txns
-                const txns = JSON.parse(localStorage.getItem('aviator_txns')) || [];
-                const welcomeTxn = {
-                    txnId: "bon-" + Math.floor(Math.random() * 89999 + 10000) + "-500",
-                    email: email,
-                    type: "DEPOSIT",
-                    amount: 500.00,
-                    desc: "Razorpay Welcome Bonus Credit",
-                    status: "SUCCESS",
-                    date: new Date().toLocaleString()
-                };
-                txns.push(welcomeTxn);
-                localStorage.setItem('aviator_txns', JSON.stringify(txns));
+                // No welcome bonus
 
                 // Authorize
                 localStorage.setItem('aviator_session', email);
                 localStorage.setItem('aviator_user', JSON.stringify(newUser));
                 alertBox.className = "alert-box success";
-                alertBox.textContent = "Pilot Account Created! Credited welcome reward ₹500.00 INR. Flying in...";
+                alertBox.textContent = "Pilot Account Created Successfully! Flying in...";
                 playSuccessChord();
 
                 setTimeout(() => {

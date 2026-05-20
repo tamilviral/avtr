@@ -199,7 +199,7 @@
             <div class="admin-tab active" id="tab-users" onclick="setPanel('users')">Pilot Registers</div>
             <div class="admin-tab" id="tab-txns" onclick="setPanel('txns')">Deposit/Payout Reviews</div>
             <div class="admin-tab" id="tab-tickets" onclick="setPanel('tickets')">Helpdesk Tickets</div>
-            <div class="admin-tab" id="tab-flight" onclick="setPanel('flight')">Flight Crash Rules</div>
+            <div class="admin-tab" id="tab-rules" onclick="setPanel('rules')">Flight Rules</div>
         </div>
 
         <!-- 1. USER PANEL -->
@@ -359,110 +359,68 @@
             </div>
         </div>
 
-        <!-- 4. FLIGHT CONTROL PANEL -->
-        <div class="admin-panel" id="panel-flight">
-            <!-- Telemetry & Override grid -->
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px">
+        <!-- 4. FLIGHT RULES PANEL -->
+        <div class="admin-panel" id="panel-rules">
+            <div class="glass-panel" style="padding: 24px; display: flex; flex-direction: column; gap: 20px;">
+                <h2 style="font-family:var(--font-heading); font-size:18px; font-weight:700; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 8px;">
+                    Flight Crash / Flew Away Controls
+                </h2>
                 
-                <!-- Telemetry HUD Card -->
-                <div class="glass-panel" style="padding: 20px; display: flex; flex-direction: column; justify-content: space-between; gap: 16px;">
-                    <div>
-                        <h2 style="font-family:var(--font-heading); font-size:16px; font-weight:700; margin-bottom:4px; display:flex; align-items:center; gap:8px">
-                            <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--accent-green); box-shadow:0 0 8px var(--accent-green-glow)"></span>
-                            Real-Time Flight Telemetry
-                        </h2>
-                        <p style="font-size:11px; opacity:0.6; margin-bottom:15px">Synchronized with live game nodes</p>
-                        
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom:15px">
-                            <div style="background:rgba(0,0,0,0.2); padding:10px 14px; border-radius:8px; border:1px solid var(--border-color)">
-                                <div style="font-size:10px; opacity:0.5; font-weight:700; text-transform:uppercase; letter-spacing:0.5px">Active Flight ID</div>
-                                <div id="hud-round-id" style="font-size:16px; font-weight:800; font-family:var(--font-heading); margin-top:4px">#---</div>
-                            </div>
-                            <div style="background:rgba(0,0,0,0.2); padding:10px 14px; border-radius:8px; border:1px solid var(--border-color)">
-                                <div style="font-size:10px; opacity:0.5; font-weight:700; text-transform:uppercase; letter-spacing:0.5px">Simulation Phase</div>
-                                <div style="margin-top:5px"><span id="hud-phase" class="badge-status progress">---</span></div>
-                            </div>
-                        </div>
-                        
-                        <div style="background:rgba(0,0,0,0.2); padding:14px; border-radius:8px; border:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center">
-                            <div>
-                                <div style="font-size:10px; opacity:0.5; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px">Active Multiplier</div>
-                                <div id="hud-multiplier" style="font-size:32px; font-weight:900; font-family:var(--font-heading); color:#ffffff; line-height:1">1.00x</div>
-                            </div>
-                            <div style="text-align:right">
-                                <div style="font-size:10px; opacity:0.5; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px">Telemetry Timer</div>
-                                <div id="hud-timer" style="font-size:13px; font-weight:700; color:var(--accent-red)">---</div>
-                            </div>
+                <div class="input-group" style="margin-bottom: 10px;">
+                    <label style="display: block; font-size: 13px; font-weight: 700; margin-bottom: 8px; color: rgba(255,255,255,0.7);">
+                        Control Mode
+                    </label>
+                    <div class="status-segmented-control" style="max-width: 400px;">
+                        <button type="button" id="rules-btn-auto" class="status-option-btn active-status" onclick="updateRulesModeSelection('AUTO')">AUTOMATIC (FAIR)</button>
+                        <button type="button" id="rules-btn-manual" class="status-option-btn" onclick="updateRulesModeSelection('MANUAL')">MANUAL OVERRIDE</button>
+                    </div>
+                    <input type="hidden" id="rules-mode" value="AUTO">
+                </div>
+
+                <div id="manual-settings-wrapper" style="display: none; flex-direction: column; gap: 15px; animation: fadeIn 0.25s ease-out;">
+                    <div class="input-group" style="max-width: 300px;">
+                        <label style="display: block; font-size: 13px; font-weight: 700; margin-bottom: 8px; color: rgba(255,255,255,0.7);">
+                            Manual Flew Away Multiplier (x)
+                        </label>
+                        <input type="number" id="rules-manual-multiplier" class="input-field" step="0.01" min="1.00" value="1.50" style="font-size: 16px; font-weight: 800; text-align: center; color: var(--accent-green);">
+                    </div>
+
+                    <div class="input-group">
+                        <label style="display: block; font-size: 11px; font-weight: 700; margin-bottom: 8px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.5px;">
+                            Quick Preset Multipliers
+                        </label>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <button type="button" class="btn-action manage" onclick="setPresetMultiplier(1.00)" style="padding: 8px 16px; font-size: 12px;">1.00x (Instant Crash)</button>
+                            <button type="button" class="btn-action manage" onclick="setPresetMultiplier(1.20)" style="padding: 8px 16px; font-size: 12px;">1.20x</button>
+                            <button type="button" class="btn-action manage" onclick="setPresetMultiplier(1.50)" style="padding: 8px 16px; font-size: 12px;">1.50x</button>
+                            <button type="button" class="btn-action manage" onclick="setPresetMultiplier(2.00)" style="padding: 8px 16px; font-size: 12px;">2.00x</button>
+                            <button type="button" class="btn-action manage" onclick="setPresetMultiplier(5.00)" style="padding: 8px 16px; font-size: 12px;">5.00x</button>
+                            <button type="button" class="btn-action manage" onclick="setPresetMultiplier(10.00)" style="padding: 8px 16px; font-size: 12px;">10.00x</button>
+                            <button type="button" class="btn-action manage" onclick="setPresetMultiplier(50.00)" style="padding: 8px 16px; font-size: 12px;">50.00x</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Emergency Manual Bypass Override Card -->
-                <div class="glass-panel" style="padding: 20px; border: 1px dashed rgba(229,9,20,0.4); display: flex; flex-direction: column; justify-content: space-between; gap: 16px;">
-                    <div>
-                        <h2 style="font-family:var(--font-heading); font-size:16px; font-weight:700; margin-bottom:4px; color:var(--accent-red)">
-                            🚨 Emergency Ground Command
-                        </h2>
-                        <p style="font-size:11px; opacity:0.6; margin-bottom:15px">Instantly command the active flight to crash and fly away</p>
-                        <p style="font-size:12px; line-height:1.5; opacity:0.8; margin-bottom:20px">
-                            Forces immediate execution of flight abort procedures. Wagers for players currently inside the cabin are resolved at the precise multiplier recorded at the instant this command is received.
-                        </p>
-                    </div>
-                    <button type="button" id="btn-force-crash" class="btn-action reject" onclick="triggerEmergencyCrash()" style="width:100%; height:46px; font-size:13px; font-weight:900; letter-spacing:0.5px; border-radius:8px; box-shadow:0 0 16px rgba(229,9,20,0.25)">
-                        Force Plane Instant Crash
+                <div style="display: flex; align-items: center; justify-content: flex-end; margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 15px;">
+                    <button type="button" class="btn-action approve" onclick="saveFlightRules()" style="padding: 10px 24px; font-size: 12px;">
+                        Save Rules & Apply
                     </button>
                 </div>
             </div>
 
-            <!-- Rules Config Form -->
-            <div class="glass-panel" style="padding: 20px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px">
-                    <h2 style="font-family:var(--font-heading); font-size:16px; font-weight:700">Flight Rule Overrides</h2>
-                    <div style="display:flex; align-items:center; gap:8px">
-                        <span style="font-size:11px; opacity:0.5">Active Rule:</span>
-                        <span id="active-rule-label" class="badge-status resolved">Provably Fair (Default)</span>
-                    </div>
+            <!-- Current Rules Status Card -->
+            <div class="glass-panel" style="padding: 20px; display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.02);">
+                <div>
+                    <h3 style="font-family:var(--font-heading); font-size:14px; font-weight:700; margin-bottom:4px;">Active System Configuration</h3>
+                    <p style="font-size:12px; color:rgba(255,255,255,0.5);" id="rules-status-desc">
+                        Currently running in Automatic Mode (Provably Fair).
+                    </p>
                 </div>
-                
-                <p id="active-rule-details" style="font-size:12px; opacity:0.7; margin-bottom:20px; padding:10px 14px; background:rgba(0,0,0,0.15); border-radius:6px; border-left:3px solid var(--accent-green)">
-                    Calculations are determined deterministically from secure seed hashes.
-                </p>
-
-                <form id="edit-rule-form" onsubmit="applyFlightRule(event)" style="display:flex; flex-direction:column; gap:16px">
-                    <div class="input-group" style="width:100%">
-                        <label style="margin-bottom:8px">Select Override Rule Mode</label>
-                        <div class="status-segmented-control" style="height: auto; padding: 4px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; width: 100%;">
-                            <button type="button" id="rule-btn-default" class="status-option-btn active-status" onclick="updateRuleModeSelection('default')" style="height:32px; font-size:10px">Provably Fair</button>
-                            <button type="button" id="rule-btn-fixed" class="status-option-btn" onclick="updateRuleModeSelection('fixed')" style="height:32px; font-size:10px">Fixed Constant</button>
-                            <button type="button" id="rule-btn-next" class="status-option-btn" onclick="updateRuleModeSelection('next_round')" style="height:32px; font-size:10px">Forced Next Rd</button>
-                            <button type="button" id="rule-btn-sequence" class="status-option-btn" onclick="updateRuleModeSelection('sequence')" style="height:32px; font-size:10px">Sequential Cycle</button>
-                        </div>
-                        <input type="hidden" id="rule-mode" value="default">
-                    </div>
-
-                    <!-- Config Input Groups (Show/Hide dynamically) -->
-                    <div id="group-fixed-val" class="input-group" style="display:none">
-                        <label>Fixed Target Crash Multiplier (x)</label>
-                        <input type="number" id="rule-fixed-val" class="input-field" step="0.01" min="1.01" max="150.00" value="2.00" style="max-width:250px">
-                        <span style="font-size:11px; opacity:0.5; margin-top:4px">All subsequent game flights will crash precisely at this value.</span>
-                    </div>
-
-                    <div id="group-next-val" class="input-group" style="display:none">
-                        <label>Next Round Crash Multiplier Override (x)</label>
-                        <input type="number" id="rule-next-val" class="input-field" step="0.01" min="1.01" max="150.00" value="2.00" style="max-width:250px">
-                        <span style="font-size:11px; opacity:0.5; margin-top:4px">The very next round will crash at this multiplier. Automatically resets to Provably Fair afterwards.</span>
-                    </div>
-
-                    <div id="group-seq-val" class="input-group" style="display:none">
-                        <label>Sequential Loop Multipliers (Comma Separated)</label>
-                        <input type="text" id="rule-seq-val" class="input-field" placeholder="e.g. 1.20, 3.50, 1.05, 10.00" value="1.20, 3.50, 1.05, 10.00">
-                        <span style="font-size:11px; opacity:0.5; margin-top:4px">Game cycles through these values sequentially. Values must be greater than or equal to 1.00.</span>
-                    </div>
-
-                    <div style="display:flex; justify-content:flex-end; margin-top:8px">
-                        <button type="submit" class="btn-action approve" style="padding: 10px 24px; font-weight:800; font-size:12px">Apply Flight Rule Override</button>
-                    </div>
-                </form>
+                <div style="text-align: right;">
+                    <span id="rules-status-badge" class="badge-status resolved" style="padding: 6px 14px; font-size: 12px; font-weight: 800;">
+                        AUTO
+                    </span>
+                </div>
             </div>
         </div>
 
@@ -527,7 +485,6 @@
             }, 3000);
         }
 
-        let telemetryInterval = null;
         function setPanel(panelId) {
             const panels = document.querySelectorAll('.admin-panel');
             const tabs = document.querySelectorAll('.admin-tab');
@@ -538,12 +495,6 @@
             document.getElementById(`panel-${panelId}`).classList.add('active');
             document.getElementById(`tab-${panelId}`).classList.add('active');
             
-            if (panelId === 'flight') {
-                startTelemetryMonitor();
-            } else {
-                stopTelemetryMonitor();
-            }
-            
             renderAllData();
         }
 
@@ -551,7 +502,7 @@
             renderUsers();
             renderTxns();
             renderTickets();
-            renderFlightControlPanel();
+            renderRules();
         }
 
         // User management
@@ -904,277 +855,95 @@
             }
         }
 
-        // =============================================================
-        // FLIGHT CONTROL & TELEMETRY MODULE
-        // =============================================================
-        const CONFIG = {
-            roundDuration: 15000,
-            lobbyDuration: 4000,
-            growthFactor: 0.08
-        };
+        // Flight Rules Management
+        function updateRulesModeSelection(mode) {
+            const autoBtn = document.getElementById('rules-btn-auto');
+            const manualBtn = document.getElementById('rules-btn-manual');
+            const hiddenInput = document.getElementById('rules-mode');
+            const manualWrapper = document.getElementById('manual-settings-wrapper');
 
-        function calculateTelemetryDeterministicCrash(roundId) {
-            try {
-                const forceCrash = JSON.parse(localStorage.getItem('aviator_force_crash'));
-                if (forceCrash && forceCrash.roundId === roundId && forceCrash.crashMultiplier) {
-                    return parseFloat(forceCrash.crashMultiplier);
-                }
-            } catch (e) {}
+            const cleanMode = (mode || 'AUTO').toUpperCase();
+            hiddenInput.value = cleanMode;
 
-            try {
-                const rule = JSON.parse(localStorage.getItem('aviator_manual_rule'));
-                if (rule && rule.mode && rule.mode !== 'default') {
-                    if (rule.mode === 'fixed' && rule.fixedValue) {
-                        return parseFloat(rule.fixedValue);
-                    } else if (rule.mode === 'next_round' && rule.targetRoundId === roundId && rule.nextRoundValue) {
-                        return parseFloat(rule.nextRoundValue);
-                    } else if (rule.mode === 'sequence' && rule.sequence && rule.sequence.length > 0) {
-                        const idx = roundId % rule.sequence.length;
-                        return parseFloat(rule.sequence[idx]);
-                    }
-                }
-            } catch (e) {}
-
-            const x = Math.sin(roundId * 9876.5432) * 10000;
-            const rand = x - Math.floor(x);
-            if (rand < 0.03) return 1.00;
-            const multi = 1.01 + (0.97 / Math.pow(rand, 1.08)) * 0.07;
-            return parseFloat(Math.min(multi, 150).toFixed(2));
-        }
-
-        function getTelemetryEpochState() {
-            const now = Date.now();
-            const roundId = Math.floor(now / CONFIG.roundDuration);
-            const roundStartTime = roundId * CONFIG.roundDuration;
-            const elapsed = now - roundStartTime;
-
-            const crashPoint = calculateTelemetryDeterministicCrash(roundId);
-
-            let flightTimeSec = 0;
-            if (crashPoint > 1.00) {
-                flightTimeSec = Math.log(crashPoint) / CONFIG.growthFactor;
-            }
-            const flightTimeMs = flightTimeSec * 1000;
-            const maxFlightTimeMs = CONFIG.roundDuration - CONFIG.lobbyDuration - 800;
-
-            const actualFlightTimeMs = Math.min(flightTimeMs, maxFlightTimeMs);
-            const actualCrashPoint = Math.exp(CONFIG.growthFactor * (actualFlightTimeMs / 1000));
-
-            let phase = "";
-            let timeRemaining = 0;
-            let currentMultiplier = 1.00;
-
-            if (elapsed < CONFIG.lobbyDuration) {
-                phase = "LOBBY";
-                timeRemaining = CONFIG.lobbyDuration - elapsed;
-            } else if (elapsed < CONFIG.lobbyDuration + actualFlightTimeMs) {
-                phase = "FLYING";
-                timeRemaining = (CONFIG.lobbyDuration + actualFlightTimeMs) - elapsed;
-                const flightElapsedSec = (elapsed - CONFIG.lobbyDuration) / 1000;
-                currentMultiplier = Math.exp(CONFIG.growthFactor * flightElapsedSec);
+            if (cleanMode === 'MANUAL') {
+                autoBtn.className = "status-option-btn";
+                manualBtn.className = "status-option-btn active-status";
+                manualWrapper.style.display = "flex";
             } else {
-                phase = "CRASHED";
-                timeRemaining = CONFIG.roundDuration - elapsed;
-                currentMultiplier = actualCrashPoint;
-            }
-
-            return {
-                roundId,
-                phase,
-                elapsed,
-                timeRemaining,
-                currentMultiplier,
-                crashPoint: actualCrashPoint
-            };
-        }
-
-        function startTelemetryMonitor() {
-            if (telemetryInterval) clearInterval(telemetryInterval);
-            telemetryInterval = setInterval(updateTelemetryHUD, 100);
-        }
-
-        function stopTelemetryMonitor() {
-            if (telemetryInterval) {
-                clearInterval(telemetryInterval);
-                telemetryInterval = null;
+                autoBtn.className = "status-option-btn active-status";
+                manualBtn.className = "status-option-btn";
+                manualWrapper.style.display = "none";
             }
         }
 
-        function updateTelemetryHUD() {
-            const state = getTelemetryEpochState();
-            
-            const hudRoundId = document.getElementById('hud-round-id');
-            const hudPhase = document.getElementById('hud-phase');
-            const hudMultiplier = document.getElementById('hud-multiplier');
-            const hudTimer = document.getElementById('hud-timer');
-            const btnForce = document.getElementById('btn-force-crash');
-            
-            if (!hudRoundId) return;
-
-            hudRoundId.textContent = `#${state.roundId}`;
-            
-            // Format Phase and Multiplier
-            if (state.phase === 'LOBBY') {
-                hudPhase.className = "badge-status progress";
-                hudPhase.style.animation = "text-pulse 1s infinite alternate";
-                hudPhase.textContent = "LOBBY (READY TO FLY)";
-                hudMultiplier.textContent = "1.00x";
-                hudTimer.textContent = `Takeoff in ${(state.timeRemaining / 1000).toFixed(1)}s`;
-                if (btnForce) {
-                    btnForce.disabled = true;
-                    btnForce.style.opacity = "0.4";
-                    btnForce.style.cursor = "not-allowed";
-                }
-            } else if (state.phase === 'FLYING') {
-                hudPhase.className = "badge-status progress";
-                hudPhase.style.background = "var(--accent-green)";
-                hudPhase.style.color = "#000";
-                hudPhase.style.animation = "text-pulse 0.5s infinite alternate";
-                hudPhase.textContent = "FLYING (AIRBORNE)";
-                hudMultiplier.textContent = `${state.currentMultiplier.toFixed(2)}x`;
-                hudTimer.textContent = "ACTIVE FLIGHT PATH";
-                if (btnForce) {
-                    btnForce.disabled = false;
-                    btnForce.style.opacity = "1";
-                    btnForce.style.cursor = "pointer";
-                }
-            } else {
-                hudPhase.className = "badge-status reject";
-                hudPhase.style.animation = "none";
-                hudPhase.textContent = "CRASHED (FLEW AWAY)";
-                hudMultiplier.textContent = `${state.currentMultiplier.toFixed(2)}x`;
-                hudTimer.textContent = `Lobby in ${(state.timeRemaining / 1000).toFixed(1)}s`;
-                if (btnForce) {
-                    btnForce.disabled = true;
-                    btnForce.style.opacity = "0.4";
-                    btnForce.style.cursor = "not-allowed";
-                }
-            }
+        function setPresetMultiplier(val) {
+            document.getElementById('rules-manual-multiplier').value = val.toFixed(2);
         }
 
-        function renderFlightControlPanel() {
-            let rule = null;
-            try {
-                rule = JSON.parse(localStorage.getItem('aviator_manual_rule'));
-            } catch (e) {}
-            
-            if (!rule) {
-                rule = { mode: 'default' };
-            }
-            
-            const activeRuleLabel = document.getElementById('active-rule-label');
-            const ruleDetails = document.getElementById('active-rule-details');
-            
-            if (!activeRuleLabel) return;
-            
-            updateRuleModeSelectionUI(rule.mode);
-            
-            if (rule.mode === 'fixed') {
-                activeRuleLabel.className = "badge-status progress";
-                activeRuleLabel.textContent = "FORCED FIXED MULTIPLIER";
-                ruleDetails.innerHTML = `Every round will crash exactly at <strong style="color:var(--accent-green)">${rule.fixedValue ? rule.fixedValue.toFixed(2) : '2.00'}x</strong> until disabled.`;
-                document.getElementById('rule-fixed-val').value = rule.fixedValue || 2.00;
-            } else if (rule.mode === 'next_round') {
-                activeRuleLabel.className = "badge-status progress";
-                activeRuleLabel.textContent = "FORCED NEXT ROUND";
-                ruleDetails.innerHTML = `Round <strong style="color:#03a9f4">#${rule.targetRoundId}</strong> is forced to fly away at <strong style="color:var(--accent-green)">${rule.nextRoundValue ? rule.nextRoundValue.toFixed(2) : '2.00'}x</strong>. Reverts to default afterwards.`;
-                document.getElementById('rule-next-val').value = rule.nextRoundValue || 2.00;
-            } else if (rule.mode === 'sequence') {
-                activeRuleLabel.className = "badge-status progress";
-                activeRuleLabel.textContent = "SEQUENTIAL MULTIPLIER LOOP";
-                ruleDetails.innerHTML = `Cycling through: <strong style="color:var(--accent-green)">${rule.sequence ? rule.sequence.join('x, ') : ''}x</strong>.`;
-                document.getElementById('rule-seq-val').value = rule.sequence ? rule.sequence.join(', ') : '';
-            } else {
-                activeRuleLabel.className = "badge-status resolved";
-                activeRuleLabel.textContent = "PROVABLY FAIR (DEFAULT)";
-                ruleDetails.innerHTML = "Calculations are determined deterministically from secure seed hashes.";
-            }
-        }
+        function saveFlightRules() {
+            const mode = document.getElementById('rules-mode').value;
+            const multiplierVal = parseFloat(document.getElementById('rules-manual-multiplier').value);
 
-        function updateRuleModeSelectionUI(mode) {
-            const defaultBtn = document.getElementById('rule-btn-default');
-            const fixedBtn = document.getElementById('rule-btn-fixed');
-            const nextBtn = document.getElementById('rule-btn-next');
-            const seqBtn = document.getElementById('rule-btn-sequence');
-            const hiddenInput = document.getElementById('rule-mode');
-            
-            if (!defaultBtn) return;
-            hiddenInput.value = mode;
-            
-            [defaultBtn, fixedBtn, nextBtn, seqBtn].forEach(b => {
-                b.className = "status-option-btn";
-            });
-            
-            if (mode === 'default') {
-                defaultBtn.className = "status-option-btn active-status";
-            } else if (mode === 'fixed') {
-                fixedBtn.className = "status-option-btn active-status";
-            } else if (mode === 'next_round') {
-                nextBtn.className = "status-option-btn active-status";
-            } else if (mode === 'sequence') {
-                seqBtn.className = "status-option-btn active-status";
-            }
-
-            const fixedGroup = document.getElementById('group-fixed-val');
-            const nextGroup = document.getElementById('group-next-val');
-            const seqGroup = document.getElementById('group-seq-val');
-
-            if (fixedGroup) fixedGroup.style.display = (mode === 'fixed') ? 'flex' : 'none';
-            if (nextGroup) nextGroup.style.display = (mode === 'next_round') ? 'flex' : 'none';
-            if (seqGroup) seqGroup.style.display = (mode === 'sequence') ? 'flex' : 'none';
-        }
-
-        function updateRuleModeSelection(mode) {
-            updateRuleModeSelectionUI(mode);
-        }
-
-        function applyFlightRule(event) {
-            if (event) event.preventDefault();
-            const mode = document.getElementById('rule-mode').value;
-            const fixedValue = parseFloat(document.getElementById('rule-fixed-val').value) || 2.00;
-            const nextRoundValue = parseFloat(document.getElementById('rule-next-val').value) || 2.00;
-            const seqInput = document.getElementById('rule-seq-val').value.trim();
-
-            const rule = {
-                mode: mode,
-                fixedValue: fixedValue,
-                nextRoundValue: nextRoundValue,
-                sequence: [],
-                targetRoundId: null
-            };
-
-            if (mode === 'next_round') {
-                const state = getTelemetryEpochState();
-                rule.targetRoundId = state.roundId + 1;
-            } else if (mode === 'sequence') {
-                rule.sequence = seqInput.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n) && n >= 1.00);
-                if (rule.sequence.length === 0) {
-                    showToast("Configuration Error", "Please provide a valid comma-separated list of multipliers.", "error");
+            if (mode === 'MANUAL') {
+                if (isNaN(multiplierVal) || multiplierVal < 1.00) {
+                    showToast("Configuration Error", "Flew away multiplier must be at least 1.00x.", "error");
                     return;
                 }
             }
 
-            localStorage.setItem('aviator_manual_rule', JSON.stringify(rule));
+            localStorage.setItem('aviator_crash_mode', mode);
+            const savedPoint = isNaN(multiplierVal) ? 1.50 : multiplierVal;
+            localStorage.setItem('aviator_manual_crash_point', savedPoint.toFixed(2));
+
+            // Sync the game settings
             localStorage.setItem('aviator_sync_trigger', Date.now());
-            showToast("Flight Rule Applied", `Crash behavior updated to: ${mode.toUpperCase()}`, "success");
-            renderFlightControlPanel();
+
+            showToast("Rules Updated", `Flight rules saved. Mode: ${mode}${mode === 'MANUAL' ? ' (' + multiplierVal.toFixed(2) + 'x)' : ''}`, "success");
+            renderRules();
         }
 
-        function triggerEmergencyCrash() {
-            const state = getTelemetryEpochState();
-            if (state.phase !== 'FLYING') {
-                showToast("Action Blocked", "The aircraft is not currently airborne.", "warning");
-                return;
+        function renderRules() {
+            const mode = localStorage.getItem('aviator_crash_mode') || 'AUTO';
+            const multiplier = parseFloat(localStorage.getItem('aviator_manual_crash_point')) || 1.50;
+
+            const hiddenInput = document.getElementById('rules-mode');
+            if (hiddenInput) {
+                // Set control state if not matching
+                const autoBtn = document.getElementById('rules-btn-auto');
+                const manualBtn = document.getElementById('rules-btn-manual');
+                const manualWrapper = document.getElementById('manual-settings-wrapper');
+                
+                hiddenInput.value = mode;
+                if (mode === 'MANUAL') {
+                    if (autoBtn) autoBtn.className = "status-option-btn";
+                    if (manualBtn) manualBtn.className = "status-option-btn active-status";
+                    if (manualWrapper) manualWrapper.style.display = "flex";
+                } else {
+                    if (autoBtn) autoBtn.className = "status-option-btn active-status";
+                    if (manualBtn) manualBtn.className = "status-option-btn";
+                    if (manualWrapper) manualWrapper.style.display = "none";
+                }
             }
 
-            if (confirm(`CRITICAL GROUND COMMAND:\nAre you sure you want to FORCE an INSTANT CRASH of the active flight at ${state.currentMultiplier.toFixed(2)}x?`)) {
-                const forceCrash = {
-                    roundId: state.roundId,
-                    crashMultiplier: parseFloat(state.currentMultiplier.toFixed(2))
-                };
-                localStorage.setItem('aviator_force_crash', JSON.stringify(forceCrash));
-                localStorage.setItem('aviator_sync_trigger', Date.now());
-                showToast("Command Executed", `Emergency crash procedures initiated at ${state.currentMultiplier.toFixed(2)}x!`, "error");
+            const multiplierInput = document.getElementById('rules-manual-multiplier');
+            if (multiplierInput && document.activeElement !== multiplierInput) {
+                multiplierInput.value = multiplier.toFixed(2);
+            }
+
+            // Update status display
+            const desc = document.getElementById('rules-status-desc');
+            const badge = document.getElementById('rules-status-badge');
+
+            if (desc && badge) {
+                if (mode === 'MANUAL') {
+                    desc.textContent = `Forced multiplier crash override active. All flights crash at exactly ${multiplier.toFixed(2)}x.`;
+                    badge.textContent = "MANUAL";
+                    badge.className = "badge-status reject";
+                } else {
+                    desc.textContent = "Currently running in Automatic Mode (Provably Fair). Rounds crash dynamically.";
+                    badge.textContent = "AUTO";
+                    badge.className = "badge-status resolved";
+                }
             }
         }
 
@@ -1183,7 +952,7 @@
 
         // Listen for cross tab storage updates
         window.addEventListener('storage', (e) => {
-            if (e.key === 'aviator_db_users' || e.key === 'aviator_txns' || e.key === 'aviator_tickets' || e.key === 'aviator_manual_rule' || e.key === 'aviator_force_crash') {
+            if (e.key === 'aviator_db_users' || e.key === 'aviator_txns' || e.key === 'aviator_tickets' || e.key === 'aviator_crash_mode' || e.key === 'aviator_manual_crash_point') {
                 renderAllData();
             }
         });
