@@ -325,14 +325,27 @@
         const x = Math.sin(roundId * 9876.5432) * 10000;
         const rand = x - Math.floor(x);
 
-        // 3% instant crash at 1.00x
-        if (rand < 0.03) return 1.00;
+        let multi = 1.00;
 
-        // Growth distribution modeling real crash systems
-        // 97% remaining distributed exponentially
-        // M = 0.97 / (rand^1.15)
-        const multi = 1.01 + (0.97 / Math.pow(rand, 1.08)) * 0.07;
-        return parseFloat(Math.min(multi, 150).toFixed(2));
+        if (rand < 0.30) {
+            // 30% chance to crash between 1.00x and 2.00x 
+            // (Leaves 70% chance to reach 2.00x or higher)
+            multi = 1.00 + (rand / 0.30) * 1.00;
+        } else if (rand < 0.35) {
+            // 5% chance to crash between 2.00x and 5.00x 
+            // (Leaves 65% chance to reach 5.00x or higher)
+            multi = 2.00 + ((rand - 0.30) / 0.05) * 3.00;
+        } else if (rand < 0.50) {
+            // 15% chance to crash between 5.00x and 11.23x 
+            // (Leaves 50% chance to reach 11.23x or higher)
+            multi = 5.00 + ((rand - 0.35) / 0.15) * 6.23;
+        } else {
+            // 50% chance to crash above 11.23x
+            const remainingRand = (rand - 0.50) / 0.50; // Normalize to 0-1
+            multi = 11.23 / Math.pow(1 - remainingRand, 0.6); // Fat tail for extreme multipliers
+        }
+
+        return parseFloat(Math.min(Math.max(1.00, multi), 500).toFixed(2));
     }
 
     // -------------------------------------------------------------

@@ -344,6 +344,12 @@
             <div class="merchant-badge">Merchant Cockpit</div>
         </div>
 
+        <!-- SPECIAL OFFER BANNER -->
+        <div style="background: linear-gradient(90deg, #16a34a, #22c55e); color: white; text-align: center; padding: 10px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">
+            <i data-lucide="gift" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i>
+            Limited Time: Get 20% Extra Cash Bonus on all deposits!
+        </div>
+
         <!-- Body Checkout Screen -->
         <div class="checkout-body" id="screenCheckout">
             
@@ -536,6 +542,8 @@
         // -------------------------------------------------------------
         confirmBtn.onclick = () => {
             const amount = parseFloat(amountInput.value);
+            const bonusAmount = amount * 0.20;
+            const totalCredit = amount + bonusAmount;
             
             // Transition processing
             confirmBtn.className = "confirm-btn processing";
@@ -559,8 +567,8 @@
                     txnId: newTxnId,
                     email: currentUserEmail,
                     type: "DEPOSIT",
-                    amount: amount,
-                    desc: "Sri Krishna Store QR Deposit Reference ID: B1082 - " + Math.floor(Math.random() * 89999999),
+                    amount: totalCredit, // Includes 20% bonus
+                    desc: `UPI Deposit: ₹${amount.toFixed(2)} + 20% Bonus (₹${bonusAmount.toFixed(2)})`,
                     status: "PENDING",
                     date: new Date().toLocaleString()
                 };
@@ -571,7 +579,7 @@
                 // Switch screens
                 document.getElementById('screenCheckout').style.display = "none";
                 document.getElementById('screenSuccess').style.display = "flex";
-                document.getElementById('loggedAmount').textContent = amount.toFixed(2);
+                document.getElementById('loggedAmount').innerHTML = `${amount.toFixed(2)} <span style="color:var(--success-color); font-size: 14px;">(+ ₹${bonusAmount.toFixed(2)} Bonus)</span>`;
                 
                 // Trigger wallet balances cross-tab refreshes
                 localStorage.setItem('aviator_sync_trigger', Date.now());
