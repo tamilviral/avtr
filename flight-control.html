@@ -409,7 +409,7 @@
             </div>
 
             <!-- Current Rules Status Card -->
-            <div class="glass-panel" style="padding: 20px; display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.02);">
+            <div class="glass-panel" style="padding: 20px; display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.02); margin-bottom: 20px;">
                 <div>
                     <h3 style="font-family:var(--font-heading); font-size:14px; font-weight:700; margin-bottom:4px;">Active System Configuration</h3>
                     <p style="font-size:12px; color:rgba(255,255,255,0.5);" id="rules-status-desc">
@@ -420,6 +420,20 @@
                     <span id="rules-status-badge" class="badge-status resolved" style="padding: 6px 14px; font-size: 12px; font-weight: 800;">
                         AUTO
                     </span>
+                </div>
+            </div>
+
+            <!-- Future Forecast Dashboard -->
+            <div class="glass-panel" style="padding: 20px; display: flex; flex-direction: column; gap: 15px; border-left: 3px solid var(--accent-purple);">
+                <h3 style="font-family:var(--font-heading); font-size:14px; font-weight:700; margin-bottom:4px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">Provably Fair Predictor (Next 3 Rounds)</h3>
+                <p style="font-size:12px; color:rgba(255,255,255,0.5);">
+                    Forecasting the flight math using the deterministic SHA-256 styled seed tied to the epoch clock. Predictions update automatically at the start of new rounds.
+                </p>
+                <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 5px;" id="forecast-results-container">
+                    <!-- Dynamic Forecast Items -->
+                </div>
+                <div style="margin-top: 10px;">
+                    <button type="button" class="btn-action manage" onclick="calculateForecast()" style="padding: 8px 16px; font-size: 11px;">Refresh Prediction Engine</button>
                 </div>
             </div>
         </div>
@@ -494,6 +508,9 @@
             
             document.getElementById(`panel-${panelId}`).classList.add('active');
             document.getElementById(`tab-${panelId}`).classList.add('active');
+            
+            // Save state so page refresh doesn't jump back to home tab
+            localStorage.setItem('aviator_admin_active_tab', panelId);
             
             renderAllData();
         }
@@ -945,14 +962,115 @@
                     badge.className = "badge-status resolved";
                 }
             }
+            
+            calculateForecast();
+        }
+
+        function calculateDeterministicCrash(roundId) {
+            // Check for specific round overrides
+            const overrides = JSON.parse(localStorage.getItem('aviator_round_overrides') || '{}');
+            if (overrides[roundId] !== undefined) {
+                const overVal = parseFloat(overrides[roundId]);
+                if (!isNaN(overVal) && overVal >= 1.00) return overVal;
+            }
+
+            const x = Math.sin(roundId * 9876.5432) * 10000;
+            const rand = x - Math.floor(x);
+
+            let multi = 1.00;
+
+            if (rand < 0.30) {
+                multi = 1.00 + (rand / 0.30) * 1.00;
+            } else if (rand < 0.35) {
+                multi = 2.00 + ((rand - 0.30) / 0.05) * 3.00;
+            } else if (rand < 0.50) {
+                multi = 5.00 + ((rand - 0.35) / 0.15) * 6.23;
+            } else {
+                const remainingRand = (rand - 0.50) / 0.50;
+                multi = 11.23 / Math.pow(1 - remainingRand, 0.6);
+            }
+
+            return parseFloat(Math.min(Math.max(1.00, multi), 500).toFixed(2));
+        }
+
+        function promptOverrideRound(targetRoundId) {
+            const val = prompt(`Enter a manual crash multiplier for Round ID ${targetRoundId}\n(or leave blank to clear the override):`);
+            if (val === null) return; // Cancelled
+            
+            const overrides = JSON.parse(localStorage.getItem('aviator_round_overrides') || '{}');
+            
+            if (val.trim() === '') {
+                delete overrides[targetRoundId];
+                showToast("Override Cleared", `Round ${targetRoundId} will use the automatic random algorithm.`, "info");
+            } else {
+                const multi = parseFloat(val);
+                if (!isNaN(multi) && multi >= 1.0) {
+                    overrides[targetRoundId] = multi.toFixed(2);
+                    showToast("Override Set", `Round ${targetRoundId} will definitely crash at ${multi.toFixed(2)}x.`, "success");
+                } else {
+                    showToast("Invalid Multiplier", "Multiplier must be 1.00 or higher.", "error");
+                    return;
+                }
+            }
+            
+            localStorage.setItem('aviator_round_overrides', JSON.stringify(overrides));
+            localStorage.setItem('aviator_sync_trigger', Date.now()); // Force game app to sync
+            calculateForecast();
+        }
+
+        function calculateForecast() {
+            const mode = localStorage.getItem('aviator_crash_mode') || 'AUTO';
+            const manualMultiplier = parseFloat(localStorage.getItem('aviator_manual_crash_point')) || 1.50;
+            const currentRoundId = parseInt(localStorage.getItem('aviator_round_id')) || 0;
+            const overrides = JSON.parse(localStorage.getItem('aviator_round_overrides') || '{}');
+            
+            const container = document.getElementById('forecast-results-container');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            for (let i = 1; i <= 3; i++) {
+                const futureRoundId = currentRoundId + i;
+                let isOverride = overrides[futureRoundId] !== undefined;
+                let predictedMultiplier = mode === 'MANUAL' && !isOverride ? manualMultiplier : calculateDeterministicCrash(futureRoundId);
+                
+                let color = "#3498db"; // Blue
+                let bg = "rgba(52, 152, 219, 0.15)";
+                let border = "rgba(52, 152, 219, 0.3)";
+                
+                if (predictedMultiplier >= 10.0) {
+                    color = "#c0392b"; // Pink
+                    bg = "rgba(192, 57, 43, 0.15)";
+                    border = "rgba(192, 57, 43, 0.3)";
+                } else if (predictedMultiplier >= 2.0) {
+                    color = "#9b59b6"; // Purple
+                    bg = "rgba(155, 89, 182, 0.15)";
+                    border = "rgba(155, 89, 182, 0.3)";
+                }
+
+                container.innerHTML += `
+                    <div style="background: ${bg}; border: 1px solid ${border}; padding: 12px 20px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; gap: 5px; flex: 1; min-width: 100px; position: relative;">
+                        ${isOverride ? '<span style="position:absolute; top: -8px; right: -8px; background: var(--accent-red); color: white; font-size: 8px; padding: 2px 6px; border-radius: 4px; font-weight: bold;">EDITED</span>' : ''}
+                        <span style="font-size: 10px; opacity: 0.6; text-transform: uppercase; letter-spacing: 1px;">Round +${i}</span>
+                        <strong style="font-family: var(--font-heading); font-size: 24px; font-weight: 800; color: ${color};">${predictedMultiplier.toFixed(2)}x</strong>
+                        <button class="btn-action manage" onclick="promptOverrideRound(${futureRoundId})" style="margin-top: 5px; padding: 4px 8px; font-size: 9px; width: 100%;">Edit Result</button>
+                    </div>
+                `;
+            }
         }
 
         // Initialize lists
         renderAllData();
+        
+        // Restore last active dashboard tab on refresh
+        const lastTab = localStorage.getItem('aviator_admin_active_tab');
+        if (lastTab && document.getElementById(`panel-${lastTab}`)) {
+            setPanel(lastTab);
+        }
 
         // Listen for cross tab storage updates
         window.addEventListener('storage', (e) => {
-            if (e.key === 'aviator_db_users' || e.key === 'aviator_txns' || e.key === 'aviator_tickets' || e.key === 'aviator_crash_mode' || e.key === 'aviator_manual_crash_point') {
+            if (e.key === 'aviator_db_users' || e.key === 'aviator_txns' || e.key === 'aviator_tickets' || e.key === 'aviator_crash_mode' || e.key === 'aviator_manual_crash_point' || e.key === 'aviator_sync_trigger') {
                 renderAllData();
             }
         });

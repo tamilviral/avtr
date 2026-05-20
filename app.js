@@ -259,29 +259,51 @@
     synth = new WebAudioSynth();
 
     // -------------------------------------------------------------
-    // 3. DETERMINISTIC LOCKSTEP SCHEDULER
+    // 3. DETERMINISTIC DYNAMIC SCHEDULER
     // -------------------------------------------------------------
     function getEpochState() {
         const now = Date.now();
-        const roundId = Math.floor(now / CONFIG.roundDuration);
-        const roundStartTime = roundId * CONFIG.roundDuration;
-        const elapsed = now - roundStartTime;
+        
+        // Initialize or retrieve the active round state from cross-tab storage
+        let roundStart = parseInt(localStorage.getItem('aviator_round_start'));
+        let roundId = parseInt(localStorage.getItem('aviator_round_id'));
 
-        // Generate crash point deterministically from the roundId
-        const crashPoint = calculateDeterministicCrash(roundId);
-
-        // Time to crash derived from growth formula: M(t) = e^(0.08 * t)
-        // t = ln(M) / 0.08 seconds
-        let flightTimeSec = 0;
-        if (crashPoint > 1.00) {
-            flightTimeSec = Math.log(crashPoint) / CONFIG.growthFactor;
+        if (!roundStart || !roundId || now > roundStart + 86400000) {
+            // First time setup or gap larger than 1 day
+            roundStart = now;
+            roundId = Math.floor(now / 10000);
+            localStorage.setItem('aviator_round_start', roundStart);
+            localStorage.setItem('aviator_round_id', roundId);
         }
-        const flightTimeMs = flightTimeSec * 1000;
-        const maxFlightTimeMs = CONFIG.roundDuration - CONFIG.lobbyDuration - 800; // clamp flight duration
 
-        const actualFlightTimeMs = Math.min(flightTimeMs, maxFlightTimeMs);
-        const actualCrashPoint = Math.exp(CONFIG.growthFactor * (actualFlightTimeMs / 1000));
+        // Calculate active round parameters
+        let crashPoint = calculateDeterministicCrash(roundId);
+        let flightTimeMs = crashPoint > 1.00 ? (Math.log(crashPoint) / CONFIG.growthFactor) * 1000 : 0;
+        let roundDuration = CONFIG.lobbyDuration + flightTimeMs + 4000; // 4 sec crash screen
 
+        // If the current round has expired, roll over to the next round
+        if (now >= roundStart + roundDuration) {
+            roundStart = roundStart + roundDuration;
+            roundId++;
+            
+            // If tab was asleep for a long time, skip the idle time
+            if (now > roundStart + 30000) {
+                roundStart = now;
+            }
+            
+            localStorage.setItem('aviator_round_start', roundStart);
+            localStorage.setItem('aviator_round_id', roundId);
+            
+            // Broadcast round rollover to other tabs (e.g. Admin panel)
+            localStorage.setItem('aviator_sync_trigger', Date.now());
+            
+            // Recalculate for the new active round
+            crashPoint = calculateDeterministicCrash(roundId);
+            flightTimeMs = crashPoint > 1.00 ? (Math.log(crashPoint) / CONFIG.growthFactor) * 1000 : 0;
+            roundDuration = CONFIG.lobbyDuration + flightTimeMs + 4000;
+        }
+
+        const elapsed = now - roundStart;
         let phase = "";
         let timeRemaining = 0;
         let currentMultiplier = 1.00;
@@ -289,15 +311,15 @@
         if (elapsed < CONFIG.lobbyDuration) {
             phase = "LOBBY";
             timeRemaining = CONFIG.lobbyDuration - elapsed;
-        } else if (elapsed < CONFIG.lobbyDuration + actualFlightTimeMs) {
+        } else if (elapsed < CONFIG.lobbyDuration + flightTimeMs) {
             phase = "FLYING";
-            timeRemaining = (CONFIG.lobbyDuration + actualFlightTimeMs) - elapsed;
+            timeRemaining = (CONFIG.lobbyDuration + flightTimeMs) - elapsed;
             const flightElapsedSec = (elapsed - CONFIG.lobbyDuration) / 1000;
             currentMultiplier = Math.exp(CONFIG.growthFactor * flightElapsedSec);
         } else {
             phase = "CRASHED";
-            timeRemaining = CONFIG.roundDuration - elapsed;
-            currentMultiplier = actualCrashPoint;
+            timeRemaining = roundDuration - elapsed;
+            currentMultiplier = crashPoint;
         }
 
         return {
@@ -306,12 +328,20 @@
             elapsed,
             timeRemaining,
             currentMultiplier,
-            crashPoint: actualCrashPoint,
-            flightDuration: actualFlightTimeMs
+            crashPoint: crashPoint,
+            flightDuration: flightTimeMs
         };
     }
 
     function calculateDeterministicCrash(roundId) {
+        // 1. Check for specific round overrides
+        const overrides = JSON.parse(localStorage.getItem('aviator_round_overrides') || '{}');
+        if (overrides[roundId] !== undefined) {
+            const overVal = parseFloat(overrides[roundId]);
+            if (!isNaN(overVal) && overVal >= 1.00) return overVal;
+        }
+
+        // 2. Check for global manual mode
         const mode = localStorage.getItem('aviator_crash_mode') || 'AUTO';
         if (mode === 'MANUAL') {
             const manualVal = parseFloat(localStorage.getItem('aviator_manual_crash_point'));
@@ -432,7 +462,8 @@
             synth.updateEngineHum(state.currentMultiplier);
 
             // CALCULATE AIRPLANE POSITIONS
-            const t = (CONFIG.roundDuration - CONFIG.lobbyDuration - state.timeRemaining) / CONFIG.roundDuration;
+            const flightElapsed = state.elapsed - CONFIG.lobbyDuration;
+            const t = flightElapsed / 10000; // Plane reaches top-right corner after 10 seconds
             const startX = 50;
             const startY = height - 50;
             const endX = width - 80;
@@ -443,20 +474,29 @@
             const curveFactor = Math.pow(Math.min(t * 1.8, 1.0), 2.2);
             const currentY = startY - (startY - endY) * curveFactor;
 
-            // DRAW CURVE PATH LINE WITH GLOW
+            // DRAW AUTHENTIC SPRIBE CRASH CURVE & GRADIENT FILL
+            const gradient = ctx.createLinearGradient(0, currentY, 0, startY);
+            gradient.addColorStop(0, 'rgba(229, 9, 20, 0.6)');
+            gradient.addColorStop(1, 'rgba(229, 9, 20, 0.0)');
+
+            const curvePath = new Path2D();
+            curvePath.moveTo(startX, startY);
+            curvePath.quadraticCurveTo(currentX * 0.7, startY * 0.95, currentX, currentY);
+
+            // Draw the thick crimson stroke
             ctx.shadowBlur = 15;
             ctx.shadowColor = "rgba(229, 9, 20, 0.5)";
-            ctx.strokeStyle = "var(--accent-red)";
-            ctx.lineWidth = 4;
+            ctx.strokeStyle = "#e50914";
+            ctx.lineWidth = 5;
+            ctx.stroke(curvePath);
             
-            ctx.beginPath();
-            ctx.moveTo(startX, startY);
-            // Draw smooth bezier curve path
-            ctx.quadraticCurveTo(currentX * 0.7, startY * 0.95, currentX, currentY);
-            ctx.stroke();
-            
-            // Reset shadow
+            // Draw the fading red gradient underneath
             ctx.shadowBlur = 0;
+            curvePath.lineTo(currentX, startY);
+            curvePath.lineTo(startX, startY);
+            curvePath.closePath();
+            ctx.fillStyle = gradient;
+            ctx.fill(curvePath);
 
             // SPAWN SMOKE EXHAUST PARTICLES
             if (Math.random() < 0.35) {
@@ -513,7 +553,7 @@
             ctx.fill();
             ctx.restore();
             
-            // Auto Cash Checks
+            // Auto Cash Checks (handled safely in background too)
             checkIndividualAutoCashOut('card1', state.currentMultiplier);
             checkIndividualAutoCashOut('card2', state.currentMultiplier);
 
@@ -522,14 +562,65 @@
             lobbyTimer.style.display = "none";
             flyMultiplier.style.display = "none";
             crashLabel.style.display = "block";
-
             crashLabel.textContent = "FLEW AWAY!\n" + state.currentMultiplier.toFixed(2) + "x";
 
-            // Trigger crash audio explosion once
-            if (synth.engineOsc) {
-                synth.playExplosion();
-                handleRoundCrashEnd(state.currentMultiplier);
-            }
+            // RECONSTRUCT FINAL CRASH CURVE
+            const tCrash = state.flightDuration / 10000;
+            const startX = 50;
+            const startY = height - 50;
+            const endX = width - 80;
+            const endY = 80;
+
+            const crashX = startX + (endX - startX) * Math.min(tCrash * 1.8, 1.0);
+            const crashCurveFactor = Math.pow(Math.min(tCrash * 1.8, 1.0), 2.2);
+            const crashY = startY - (startY - endY) * crashCurveFactor;
+
+            const gradient = ctx.createLinearGradient(0, crashY, 0, startY);
+            gradient.addColorStop(0, 'rgba(229, 9, 20, 0.6)');
+            gradient.addColorStop(1, 'rgba(229, 9, 20, 0.0)');
+
+            const curvePath = new Path2D();
+            curvePath.moveTo(startX, startY);
+            curvePath.quadraticCurveTo(crashX * 0.7, startY * 0.95, crashX, crashY);
+
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = "rgba(229, 9, 20, 0.5)";
+            ctx.strokeStyle = "#e50914";
+            ctx.lineWidth = 5;
+            ctx.stroke(curvePath);
+            
+            ctx.shadowBlur = 0;
+            curvePath.lineTo(crashX, startY);
+            curvePath.lineTo(startX, startY);
+            curvePath.closePath();
+            ctx.fillStyle = gradient;
+            ctx.fill(curvePath);
+
+            // ANIMATE PLANE FLYING AWAY
+            const timeSinceCrashMs = state.elapsed - (CONFIG.lobbyDuration + state.flightDuration);
+            const flyAwayX = crashX + (timeSinceCrashMs * 1.2); 
+            const flyAwayY = crashY - (timeSinceCrashMs * 0.2);
+            
+            ctx.fillStyle = "#ffffff";
+            ctx.save();
+            ctx.translate(flyAwayX, flyAwayY);
+            ctx.rotate(-0.15);
+            
+            ctx.beginPath();
+            ctx.moveTo(22, 0);  // Nose
+            ctx.lineTo(-12, -15); // Left Wing
+            ctx.lineTo(-6, -4);
+            ctx.lineTo(-20, -6);  // Tail Left
+            ctx.lineTo(-16, 0);   // Tail
+            ctx.lineTo(-20, 6);   // Tail Right
+            ctx.lineTo(-6, 4);
+            ctx.lineTo(-12, 15);  // Right Wing
+            ctx.closePath();
+            
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = "rgba(255, 255, 255, 0.4)";
+            ctx.fill();
+            ctx.restore();
         }
 
         animationFrameId = requestAnimationFrame(renderLoop);
@@ -765,6 +856,7 @@
     // 6. MULTIPLAYER SIMULATOR & ROUND RECOGNITION
     // -------------------------------------------------------------
     let currentRoundId = -1;
+    let lastCrashedRoundId = -1;
 
     function monitorEpochTick() {
         const state = getEpochState();
@@ -772,6 +864,21 @@
         if (state.roundId !== currentRoundId) {
             currentRoundId = state.roundId;
             handleNewRoundTakeoff(state);
+        }
+
+        // BACKGROUND WORKING SCRIPT:
+        // Ensure auto-cashout and crash logic runs even if the browser tab is inactive.
+        if (state.phase === "FLYING") {
+            checkIndividualAutoCashOut('card1', state.currentMultiplier);
+            checkIndividualAutoCashOut('card2', state.currentMultiplier);
+        } else if (state.phase === "CRASHED") {
+            if (state.roundId !== lastCrashedRoundId) {
+                lastCrashedRoundId = state.roundId;
+                handleRoundCrashEnd(state.currentMultiplier);
+                if (synth && synth.engineOsc) {
+                    synth.playExplosion();
+                }
+            }
         }
 
         updateCashOutDynamicLabels();

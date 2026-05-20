@@ -4,9 +4,9 @@
    ========================================================================== */
 
 :root {
-    --bg-primary: #090a0f;
-    --bg-panel: #12141d;
-    --bg-panel-light: #1b1e2a;
+    --bg-primary: #12141a;
+    --bg-panel: #1b1c24;
+    --bg-panel-light: #24252f;
     --accent-red: #e50914;
     --accent-red-glow: rgba(229, 9, 20, 0.4);
     --accent-green: #22c55e;
@@ -155,13 +155,22 @@ body {
 .game-workspace {
     flex: 1;
     display: grid;
-    grid-template-columns: 1fr 340px;
+    grid-template-columns: 340px 1fr;
     gap: 12px;
     padding: 12px;
     overflow: hidden;
 }
 
+.side-panel {
+    grid-column: 1;
+    grid-row: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
 .main-column {
+    grid-column: 2;
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -259,23 +268,23 @@ body {
     font-family: var(--font-heading);
     font-weight: 700;
     font-size: 11px;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid var(--border-color);
-    color: rgba(255,255,255,0.8);
+    background: rgba(52, 152, 219, 0.15);
+    border: 1px solid rgba(52, 152, 219, 0.3);
+    color: #3498db;
     flex-shrink: 0;
     transition: var(--transition-fast);
 }
 
 .history-pill.high {
-    color: #9c27b0;
-    background: rgba(156, 39, 176, 0.1);
-    border-color: rgba(156, 39, 176, 0.2);
+    color: #c0392b;
+    background: rgba(192, 57, 43, 0.15);
+    border-color: rgba(192, 57, 43, 0.3);
 }
 
 .history-pill.mid {
-    color: #03a9f4;
-    background: rgba(3, 169, 244, 0.1);
-    border-color: rgba(3, 169, 244, 0.2);
+    color: #9b59b6;
+    background: rgba(155, 89, 182, 0.15);
+    border-color: rgba(155, 89, 182, 0.3);
 }
 
 /* Double Betting Cards */
@@ -1249,6 +1258,16 @@ input:checked + .slider:before {
         grid-template-rows: auto 1fr;
         padding: 6px;
         gap: 8px;
+    }
+
+    .main-column {
+        grid-column: 1;
+        grid-row: 1;
+    }
+
+    .side-panel {
+        grid-column: 1;
+        grid-row: 2;
     }
 
     .canvas-panel {
