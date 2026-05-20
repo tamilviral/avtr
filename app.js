@@ -264,44 +264,40 @@
     function getEpochState() {
         const now = Date.now();
         
-        // Initialize or retrieve the active round state from cross-tab storage
-        let roundStart = parseInt(localStorage.getItem('aviator_round_start'));
-        let roundId = parseInt(localStorage.getItem('aviator_round_id'));
-
-        if (!roundStart || !roundId || now > roundStart + 86400000) {
-            // First time setup or gap larger than 1 day
-            roundStart = now;
-            roundId = Math.floor(now / 10000);
-            localStorage.setItem('aviator_round_start', roundStart);
-            localStorage.setItem('aviator_round_id', roundId);
-        }
-
-        // Calculate active round parameters
-        let crashPoint = calculateDeterministicCrash(roundId);
-        let flightTimeMs = crashPoint > 1.00 ? (Math.log(crashPoint) / CONFIG.growthFactor) * 1000 : 0;
-        let roundDuration = CONFIG.lobbyDuration + flightTimeMs + 4000; // 4 sec crash screen
-
-        // If the current round has expired, roll over to the next round
-        if (now >= roundStart + roundDuration) {
-            roundStart = roundStart + roundDuration;
-            roundId++;
-            
-            // If tab was asleep for a long time, skip the idle time
-            if (now > roundStart + 30000) {
-                roundStart = now;
-            }
-            
-            localStorage.setItem('aviator_round_start', roundStart);
-            localStorage.setItem('aviator_round_id', roundId);
-            
-            // Broadcast round rollover to other tabs (e.g. Admin panel)
-            localStorage.setItem('aviator_sync_trigger', Date.now());
-            
-            // Recalculate for the new active round
+        // 1. Establish the absolute mathematical anchor: Start of the current UTC Day
+        const startOfDay = new Date(now).setUTCHours(0, 0, 0, 0);
+        
+        let cursor = startOfDay;
+        let roundId = Math.floor(startOfDay / 10000); // Unique base ID for today
+        
+        let crashPoint, flightTimeMs, roundDuration;
+        
+        // 2. Fast-forward the global clock to the current exact millisecond
+        // Since one day is max ~6000 rounds, this loop takes < 1ms to execute
+        while (cursor <= now) {
             crashPoint = calculateDeterministicCrash(roundId);
             flightTimeMs = crashPoint > 1.00 ? (Math.log(crashPoint) / CONFIG.growthFactor) * 1000 : 0;
-            roundDuration = CONFIG.lobbyDuration + flightTimeMs + 4000;
+            roundDuration = CONFIG.lobbyDuration + flightTimeMs + 4000; // 4 sec crash screen
+            
+            if (now < cursor + roundDuration) {
+                // The current real-world time falls exactly within THIS projected round!
+                break;
+            }
+            cursor += roundDuration;
+            roundId++;
         }
+        
+        let roundStart = cursor;
+        
+        // Trigger a sync event for Admin dashboard if the round just rolled over while the game was open
+        const lastLocalRoundId = parseInt(localStorage.getItem('aviator_round_id'));
+        if (lastLocalRoundId && lastLocalRoundId !== roundId) {
+            localStorage.setItem('aviator_sync_trigger', Date.now());
+        }
+        
+        // Update local storage just so the rest of the legacy code (like Forecast UI) can read the active ID
+        localStorage.setItem('aviator_round_start', roundStart);
+        localStorage.setItem('aviator_round_id', roundId);
 
         const elapsed = now - roundStart;
         let phase = "";
