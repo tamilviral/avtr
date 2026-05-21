@@ -253,6 +253,12 @@
             </div>
 
             <!-- Users table list -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; margin-top: 24px;">
+                <h3 style="font-family:var(--font-heading); font-size:16px; font-weight:700;">Pilot Registry Database</h3>
+                <button class="btn-deposit" onclick="downloadAllDataCSV()" style="background: var(--rzp-blue); color: #fff; padding: 10px 16px; font-size: 13px;">
+                    <i data-lucide="download" style="width: 14px; height: 14px; margin-right: 6px; display:inline-block; vertical-align:-2px;"></i> Download Data Statement
+                </button>
+            </div>
             <div class="admin-table-container">
                 <table class="admin-table">
                     <thead>
@@ -264,6 +270,7 @@
                             <th>Wallet Balance</th>
                             <th>Password</th>
                             <th>Status</th>
+                            <th>Active Hours</th>
                             <th>Rounds Played</th>
                             <th>Actions</th>
                         </tr>
@@ -550,6 +557,7 @@
                             ${u.status}
                         </span>
                     </td>
+                    <td style="font-weight: 700;">${u.totalActiveSeconds ? (u.totalActiveSeconds / 3600).toFixed(2) : '0.00'}h</td>
                     <td>${u.stats ? u.stats.totalGames : 0}</td>
                     <td>
                         <button class="btn-action manage" onclick="selectUserToManage('${u.email}')">Manage</button>
@@ -1056,6 +1064,59 @@
             
             localStorage.setItem('aviator_round_overrides', JSON.stringify(overrides));
             localStorage.setItem('aviator_sync_trigger', Date.now()); // Force game app to sync
+        }
+
+        function downloadAllDataCSV() {
+            let csvContent = "";
+            const users = JSON.parse(localStorage.getItem('aviator_db_users')) || [];
+            const activityLogs = JSON.parse(localStorage.getItem('aviator_activity_logs')) || [];
+            const txns = JSON.parse(localStorage.getItem('aviator_txns')) || [];
+            
+            // Section 1: Users
+            csvContent += "=== PILOT REGISTERS ===\n";
+            csvContent += "Customer ID,Username,Email,Phone,Register Date,Balance,Active Hours,Status,Total Rounds\n";
+            users.forEach(u => {
+                const activeHours = u.totalActiveSeconds ? (u.totalActiveSeconds / 3600).toFixed(2) : '0.00';
+                const rounds = u.stats ? u.stats.totalGames : 0;
+                csvContent += `"${u.customerId || ''}","${u.username || ''}","${u.email}","${u.phone || ''}","${u.joinDate || ''}","${u.balance.toFixed(2)}","${activeHours}","${u.status}","${rounds}"\n`;
+            });
+            csvContent += "\n";
+
+            // Section 2: Activity Logs
+            csvContent += "=== LOGIN / LOGOUT ACTIVITY ===\n";
+            csvContent += "Session ID,Email,Login Time,Logout Time,Duration (Seconds)\n";
+            activityLogs.forEach(log => {
+                csvContent += `"${log.sessionId}","${log.email}","${log.loginTime}","${log.logoutTime || 'Active/Abandoned'}","${log.duration}"\n`;
+            });
+            csvContent += "\n";
+
+            // Section 3: Deposits & Withdrawals
+            csvContent += "=== DEPOSITS & WITHDRAWALS ===\n";
+            csvContent += "Txn ID,Email,Type,Amount,Date,Status,Payment Details\n";
+            const bankingTxns = txns.filter(t => t.type === 'DEPOSIT' || t.type === 'WITHDRAWAL');
+            bankingTxns.forEach(t => {
+                csvContent += `"${t.txnId}","${t.email}","${t.type}","${t.amount}","${t.date}","${t.status}","${t.upi || t.bankDetails || t.desc || ''}"\n`;
+            });
+            csvContent += "\n";
+
+            // Section 4: Flight History (Playing List)
+            csvContent += "=== FLIGHT BETTING HISTORY ===\n";
+            csvContent += "Txn ID,Email,Type,Bet Amount,Multiplier,Win Amount,Date,Status\n";
+            const flightTxns = txns.filter(t => t.type === 'FLIGHT' || t.type === 'CASHOUT' || t.type === 'BET');
+            flightTxns.forEach(t => {
+                csvContent += `"${t.txnId}","${t.email}","${t.type}","${t.amount || t.bet}","${t.multiplier || ''}","${t.winAmount || ''}","${t.date}","${t.status}"\n`;
+            });
+            csvContent += "\n";
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", "Aviator_System_Statement.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast("Statement Downloaded", "The system statement CSV has been generated.", "success");
         }
 
         // Initialize lists

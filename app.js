@@ -1365,6 +1365,7 @@
         document.getElementById('logoutBtn').onclick = () => {
             const overlay = document.getElementById('logoutOverlay');
             overlay.classList.add('active');
+            endSessionActivity();
             localStorage.removeItem('aviator_session');
             localStorage.removeItem('aviator_user');
             setTimeout(() => {
@@ -1560,6 +1561,7 @@
         localStorage.setItem('aviator_txns', JSON.stringify(txns));
         
         // Clear session
+        endSessionActivity();
         localStorage.removeItem('aviator_session');
         localStorage.removeItem('aviator_user');
         
@@ -1722,6 +1724,7 @@
         // Start synchronized flight loops
         renderLoop();
         setInterval(monitorEpochTick, 100);
+        setupHeartbeat();
 
         // WebAudio trigger activation on user clicks
         document.body.addEventListener('click', () => {
@@ -1735,5 +1738,40 @@
             }, 3000);
         }
     };
+
+    function setupHeartbeat() {
+        setInterval(() => {
+            const sessionId = localStorage.getItem('aviator_current_session_id');
+            const userEmail = localStorage.getItem('aviator_session');
+            if (!sessionId || !userEmail) return;
+
+            let logs = JSON.parse(localStorage.getItem('aviator_activity_logs')) || [];
+            const sessionIdx = logs.findIndex(s => s.sessionId === sessionId);
+            if (sessionIdx !== -1) {
+                logs[sessionIdx].duration = (logs[sessionIdx].duration || 0) + 60;
+                localStorage.setItem('aviator_activity_logs', JSON.stringify(logs));
+            }
+
+            let users = JSON.parse(localStorage.getItem('aviator_db_users')) || [];
+            const userIdx = users.findIndex(u => u.email === userEmail);
+            if (userIdx !== -1) {
+                users[userIdx].totalActiveSeconds = (users[userIdx].totalActiveSeconds || 0) + 60;
+                localStorage.setItem('aviator_db_users', JSON.stringify(users));
+            }
+        }, 60000);
+    }
+
+    function endSessionActivity() {
+        const sessionId = localStorage.getItem('aviator_current_session_id');
+        if (sessionId) {
+            let logs = JSON.parse(localStorage.getItem('aviator_activity_logs')) || [];
+            const sessionIdx = logs.findIndex(s => s.sessionId === sessionId);
+            if (sessionIdx !== -1) {
+                logs[sessionIdx].logoutTime = new Date().toLocaleString();
+                localStorage.setItem('aviator_activity_logs', JSON.stringify(logs));
+            }
+            localStorage.removeItem('aviator_current_session_id');
+        }
+    }
 
 })();

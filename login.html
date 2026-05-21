@@ -490,8 +490,25 @@
             if (!localStorage.getItem('aviator_txns')) {
                 localStorage.setItem('aviator_txns', JSON.stringify([]));
             }
+            if (!localStorage.getItem('aviator_activity_logs')) {
+                localStorage.setItem('aviator_activity_logs', JSON.stringify([]));
+            }
         }
         preseedDb();
+
+        function logSessionActivity(email) {
+            let logs = JSON.parse(localStorage.getItem('aviator_activity_logs')) || [];
+            const sessionId = "sess-" + Date.now();
+            logs.push({
+                sessionId: sessionId,
+                email: email,
+                loginTime: new Date().toLocaleString(),
+                logoutTime: null,
+                duration: 0 // in seconds
+            });
+            localStorage.setItem('aviator_activity_logs', JSON.stringify(logs));
+            localStorage.setItem('aviator_current_session_id', sessionId);
+        }
 
         // Procedural success audio context chord
         function playSuccessChord() {
@@ -584,6 +601,7 @@
                 // Authorized
                 localStorage.setItem('aviator_session', matched.email);
                 localStorage.setItem('aviator_user', JSON.stringify(matched));
+                logSessionActivity(matched.email);
                 alertBox.className = "alert-box success";
                 alertBox.textContent = "Authorization Granted! Redirecting to flight cockpit...";
                 playSuccessChord();
@@ -665,6 +683,7 @@
                 // Authorize
                 localStorage.setItem('aviator_session', email);
                 localStorage.setItem('aviator_user', JSON.stringify(newUser));
+                logSessionActivity(email);
                 alertBox.className = "alert-box success";
                 alertBox.textContent = "Pilot Account Created!" + referralMsg + " Flying in...";
                 playSuccessChord();
