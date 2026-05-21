@@ -39,17 +39,16 @@
         body {
             background-color: var(--bg-primary);
             color: var(--text-white);
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
             padding: 20px;
+            overflow-y: auto;
         }
 
         .auth-container {
             width: 420px;
             max-width: 100%;
+            margin: auto;
             background: rgba(18, 20, 29, 0.8);
             backdrop-filter: blur(16px);
             border: 1px solid var(--border-color);
@@ -320,7 +319,6 @@
         <!-- 1. SIGN IN FORM -->
         <form class="auth-form active" id="loginForm">
             <div class="input-group">
-            <div class="input-group">
                 <label>Username, Email, or Phone</label>
                 <div class="input-wrapper">
                     <i data-lucide="user" style="width: 16px; height: 16px;"></i>
@@ -534,6 +532,7 @@
             loginForm.classList.add('active');
             registerForm.classList.remove('active');
             alertBox.className = "alert-box";
+            sessionStorage.setItem('aviator_auth_tab', 'login');
         };
 
         btnToggleRegister.onclick = () => {
@@ -542,7 +541,13 @@
             registerForm.classList.add('active');
             loginForm.classList.remove('active');
             alertBox.className = "alert-box";
+            sessionStorage.setItem('aviator_auth_tab', 'register');
         };
+
+        // Restore tab on load
+        if (sessionStorage.getItem('aviator_auth_tab') === 'register') {
+            btnToggleRegister.click();
+        }
 
         // SIGN IN SUBMIT
         loginForm.onsubmit = (e) => {

@@ -38,14 +38,14 @@
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
-            align-items: center;
-            justify-content: center;
             padding: 20px;
+            overflow-y: auto;
         }
 
         .checkout-card {
             width: 440px;
             max-width: 100%;
+            margin: auto;
             background: var(--bg-card);
             border-radius: 20px;
             box-shadow: 0 15px 35px rgba(0,0,0,0.06);
@@ -362,6 +362,12 @@
                 </div>
             </div>
 
+            <!-- Sender Details Input -->
+            <div class="amount-section" style="margin-top: -10px; padding: 12px; background: rgba(0,0,0,0.015);">
+                <div class="amount-label" style="margin-bottom: 8px;">Your Payment Details</div>
+                <input type="text" id="senderDetails" placeholder="Enter your UPI ID or Bank A/C" style="width: 100%; border: 1px solid var(--border-color); background: #ffffff; padding: 10px; border-radius: 8px; font-size: 13px; text-align: center; outline: none; font-weight: 600; color: var(--rzp-dark-blue);">
+            </div>
+
             <!-- Scannable QR Code (Hidden initially, shown after amount is confirmed) -->
             <div class="qr-section" id="qrContainer" style="display: none;">
                 <div class="qr-canvas-wrapper" style="background: #ffffff; padding: 12px; border-radius: 12px; display: flex; align-items: center; justify-content: center; width: 170px; height: 170px; margin: 0 auto 12px auto; border: 1px solid var(--border-color);">
@@ -542,6 +548,14 @@
         // -------------------------------------------------------------
         confirmBtn.onclick = () => {
             const amount = parseFloat(amountInput.value);
+            const senderDetails = document.getElementById('senderDetails').value.trim();
+            
+            if (!senderDetails) {
+                alert("Please enter your UPI ID or Bank Account details so we can verify your deposit!");
+                document.getElementById('senderDetails').focus();
+                return;
+            }
+
             const bonusAmount = amount * 0.20;
             const totalCredit = amount + bonusAmount;
             
@@ -569,6 +583,7 @@
                     type: "DEPOSIT",
                     amount: totalCredit, // Includes 20% bonus
                     desc: `UPI Deposit: ₹${amount.toFixed(2)} + 20% Bonus (₹${bonusAmount.toFixed(2)})`,
+                    upi: senderDetails,
                     status: "PENDING",
                     date: new Date().toLocaleString()
                 };
