@@ -1,16 +1,16 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
 
 // Firebase Configuration provided by user
 const firebaseConfig = {
-  apiKey: "AIzaSyBt1qbrJcCyuZKdln6vGWdIKs7tsmjvAv0",
-  authDomain: "avtr-bbc2c.firebaseapp.com",
-  databaseURL: "https://avtr-bbc2c-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "avtr-bbc2c",
-  storageBucket: "avtr-bbc2c.firebasestorage.app",
-  messagingSenderId: "648276132960",
-  appId: "1:648276132960:web:8342c2c333d2d2587eaf05"
+  apiKey: "AIzaSyAamiz5i_njeSZ9LaAXedxtMMlDVm2Mw0w",
+  authDomain: "avtr-7a851.firebaseapp.com",
+  projectId: "avtr-7a851",
+  storageBucket: "avtr-7a851.firebasestorage.app",
+  messagingSenderId: "216465267194",
+  appId: "1:216465267194:web:15b44acd48242b71bb6c43"
 };
+
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
