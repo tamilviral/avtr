@@ -1,17 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Pilot Authorization Gateway - Aviator</title>
-    
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Outfit:wght@800;900&display=swap" rel="stylesheet">
-    
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Outfit:wght@800;900&display=swap"
+        rel="stylesheet">
+
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Vercel Serverless DB Sync -->
+    <script src="sync-client.js"></script>
 
     <style>
         :root {
@@ -54,7 +59,7 @@
             border: 1px solid var(--border-color);
             border-radius: 24px;
             padding: 32px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
             position: relative;
             animation: modal-spring-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
@@ -84,7 +89,7 @@
         .auth-toggle {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            background: rgba(0,0,0,0.25);
+            background: rgba(0, 0, 0, 0.25);
             padding: 4px;
             border-radius: 12px;
             margin-bottom: 24px;
@@ -219,34 +224,64 @@
             display: none;
             width: 20px;
             height: 20px;
-            border: 2px solid rgba(255,255,255,0.2);
+            border: 2px solid rgba(255, 255, 255, 0.2);
             border-top-color: #ffffff;
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
 
         @keyframes plane-hover {
-            0%, 100% { transform: translateY(0) rotate(0deg); }
-            50% { transform: translateY(-4px) rotate(1.5deg); }
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            50% {
+                transform: translateY(-4px) rotate(1.5deg);
+            }
         }
 
         @keyframes modal-spring-in {
-            from { opacity: 0; transform: scale(0.9) translateY(20px); }
-            to { opacity: 1; transform: scale(1) translateY(0); }
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
         }
 
         @keyframes fade-slide {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         @keyframes slide-down {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         /* Frosted Glass Overlay Modals */
@@ -297,13 +332,15 @@
         }
     </style>
 </head>
+
 <body>
 
     <div class="auth-container">
-        
+
         <div class="brand-logo-header">
             <svg class="logo-svg" width="40" height="40" viewBox="0 0 24 24">
-                <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L14 19v-5.5l8 2.5z"/>
+                <path
+                    d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L14 19v-5.5l8 2.5z" />
             </svg>
             <span class="brand-name">AVIATOR COCKPIT</span>
         </div>
@@ -322,10 +359,11 @@
                 <label>Username, Email, or Phone</label>
                 <div class="input-wrapper">
                     <i data-lucide="user" style="width: 16px; height: 16px;"></i>
-                    <input type="text" class="input-field" placeholder="e.g. maverick99 or pilot@aviator.com" required id="loginId">
+                    <input type="text" class="input-field" placeholder="e.g. maverick99 or pilot@aviator.com" required
+                        id="loginId">
                 </div>
             </div>
-            
+
             <div class="input-group">
                 <label>Access Password</label>
                 <div class="input-wrapper">
@@ -338,10 +376,12 @@
                 <span>AUTHORIZE ACCESS</span>
                 <div class="spinner" id="loginSpinner"></div>
             </button>
-            
+
             <div style="display:flex; justify-content:center; margin-top:8px; font-size:11px;">
                 <span style="color:var(--text-muted)">Forgot credentials? </span>
-                <a href="javascript:void(0)" onclick="openForgotCredentialsModal()" style="color:var(--accent-red); font-weight:700; margin-left:4px; text-decoration:none; transition: opacity 0.2s ease;" onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1">Recover Access</a>
+                <a href="javascript:void(0)" onclick="openForgotCredentialsModal()"
+                    style="color:var(--accent-red); font-weight:700; margin-left:4px; text-decoration:none; transition: opacity 0.2s ease;"
+                    onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1">Recover Access</a>
             </div>
         </form>
 
@@ -351,7 +391,8 @@
                 <label>Pilot Username</label>
                 <div class="input-wrapper">
                     <i data-lucide="user" style="width: 16px; height: 16px;"></i>
-                    <input type="text" class="input-field" placeholder="e.g. maverick99" required id="regUsername" minlength="3">
+                    <input type="text" class="input-field" placeholder="e.g. maverick99" required id="regUsername"
+                        minlength="3">
                 </div>
             </div>
 
@@ -367,15 +408,17 @@
                 <label>Mobile Number Coordinates</label>
                 <div class="input-wrapper">
                     <i data-lucide="phone" style="width: 16px; height: 16px;"></i>
-                    <input type="tel" class="input-field" placeholder="e.g. 9876543210" required id="regPhone" pattern="[0-9]{10}">
+                    <input type="tel" class="input-field" placeholder="e.g. 9876543210" required id="regPhone"
+                        pattern="[0-9]{10}">
                 </div>
             </div>
-            
+
             <div class="input-group">
                 <label>Create Secret Password</label>
                 <div class="input-wrapper">
                     <i data-lucide="lock" style="width: 16px; height: 16px;"></i>
-                    <input type="password" class="input-field" placeholder="Min 6 characters" required id="regPassword" minlength="6">
+                    <input type="password" class="input-field" placeholder="Min 6 characters" required id="regPassword"
+                        minlength="6">
                 </div>
             </div>
 
@@ -383,7 +426,8 @@
                 <label>Confirm Password</label>
                 <div class="input-wrapper">
                     <i data-lucide="shield-check" style="width: 16px; height: 16px;"></i>
-                    <input type="password" class="input-field" placeholder="••••••••" required id="regConfirmPassword" minlength="6">
+                    <input type="password" class="input-field" placeholder="••••••••" required id="regConfirmPassword"
+                        minlength="6">
                 </div>
             </div>
 
@@ -391,7 +435,8 @@
                 <label>Bank AC & IFSC / UPI ID</label>
                 <div class="input-wrapper">
                     <i data-lucide="landmark" style="width: 16px; height: 16px;"></i>
-                    <input type="text" class="input-field" placeholder="e.g. HDFC 12345 or pilot@upi" required id="regBankDetails">
+                    <input type="text" class="input-field" placeholder="e.g. HDFC 12345 or pilot@upi"
+                        id="regBankDetails">
                 </div>
             </div>
 
@@ -403,7 +448,8 @@
                 </div>
             </div>
 
-            <button type="submit" class="submit-btn" style="background: var(--accent-green); color: #000; box-shadow: 0 4px 15px var(--accent-green-glow);">
+            <button type="submit" class="submit-btn"
+                style="background: var(--accent-green); color: #000; box-shadow: 0 4px 15px var(--accent-green-glow);">
                 <span>CREATE PILOT ACCOUNT</span>
                 <div class="spinner" id="regSpinner"></div>
             </button>
@@ -418,36 +464,45 @@
                 <i data-lucide="x" style="width: 20px; height: 20px;"></i>
             </button>
             <div class="brand-logo-header" style="margin-bottom: 16px;">
-                <svg width="32" height="32" viewBox="0 0 24 24" style="fill: var(--accent-red); filter: drop-shadow(0 0 6px var(--accent-red-glow));">
-                    <path d="M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6-5c1.66 0 3 1.34 3 3v2H9V6c0-1.66 1.34-3 3-3zm6 17H6V10h12v10z"/>
+                <svg width="32" height="32" viewBox="0 0 24 24"
+                    style="fill: var(--accent-red); filter: drop-shadow(0 0 6px var(--accent-red-glow));">
+                    <path
+                        d="M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6-5c1.66 0 3 1.34 3 3v2H9V6c0-1.66 1.34-3 3-3zm6 17H6V10h12v10z" />
                 </svg>
                 <span class="brand-name" style="font-size: 18px;">GATEWAY RECOVERY</span>
             </div>
-            
+
             <div class="alert-box" id="forgotAlert" style="margin-bottom: 12px; font-size:11px;"></div>
-            
-            <div style="font-size: 12px; color: var(--text-grey); margin-bottom: 14px; text-align: center; line-height: 1.4;">
+
+            <div
+                style="font-size: 12px; color: var(--text-grey); margin-bottom: 14px; text-align: center; line-height: 1.4;">
                 Enter your registered Email Address or Phone Coordinates to fetch authorization status.
             </div>
-            
+
             <div class="input-group" style="margin-bottom: 16px;">
                 <label>Pilot Email or Phone</label>
                 <div class="input-wrapper">
                     <i data-lucide="user-check" style="width: 16px; height: 16px;"></i>
-                    <input type="text" class="input-field" placeholder="e.g. pilot@aviator.com or phone" id="forgotEmailPhone">
+                    <input type="text" class="input-field" placeholder="e.g. pilot@aviator.com or phone"
+                        id="forgotEmailPhone">
                 </div>
             </div>
-            
+
             <!-- Result Area -->
-            <div id="recoveryResultArea" style="display: none; background: rgba(34, 197, 94, 0.08); border: 1px solid rgba(34, 197, 94, 0.2); border-radius: 12px; padding: 12px; margin-bottom: 16px; font-size: 12px; animation: slide-down 0.25s ease-out;">
-                <div style="color: var(--accent-green); font-weight: 800; text-align: center; margin-bottom: 8px;">✓ CREDENTIALS RETRIEVED</div>
+            <div id="recoveryResultArea"
+                style="display: none; background: rgba(34, 197, 94, 0.08); border: 1px solid rgba(34, 197, 94, 0.2); border-radius: 12px; padding: 12px; margin-bottom: 16px; font-size: 12px; animation: slide-down 0.25s ease-out;">
+                <div style="color: var(--accent-green); font-weight: 800; text-align: center; margin-bottom: 8px;">✓
+                    CREDENTIALS RETRIEVED</div>
                 <div style="display: flex; flex-direction: column; gap: 6px;">
-                    <div><span style="opacity: 0.6;">Username:</span> <strong style="color: #ffffff; word-break: break-all;" id="recoveredEmail"></strong></div>
-                    <div><span style="opacity: 0.6;">Password:</span> <strong style="color: #ffffff;" id="recoveredPassword"></strong></div>
+                    <div><span style="opacity: 0.6;">Username:</span> <strong
+                            style="color: #ffffff; word-break: break-all;" id="recoveredEmail"></strong></div>
+                    <div><span style="opacity: 0.6;">Password:</span> <strong style="color: #ffffff;"
+                            id="recoveredPassword"></strong></div>
                 </div>
             </div>
-            
-            <button type="button" class="submit-btn" style="background: var(--accent-red); color: #ffffff;" onclick="recoverPilotCredentials()">
+
+            <button type="button" class="submit-btn" style="background: var(--accent-red); color: #ffffff;"
+                onclick="recoverPilotCredentials()">
                 RECOVER PILOT ACCESS
             </button>
         </div>
@@ -457,7 +512,7 @@
         // Init Database pre-seeds
         function preseedDb() {
             let users = JSON.parse(localStorage.getItem('aviator_db_users')) || [];
-            
+
             // Ensure default pilot exists
             if (!users.some(u => u.email.toLowerCase() === 'pilot@aviator.com')) {
                 users.push({
@@ -472,7 +527,7 @@
                     status: "active"
                 });
             }
-            
+
             // Ensure Admin@admin exists
             if (!users.some(u => u.email.toLowerCase() === 'admin@admin')) {
                 users.push({
@@ -484,9 +539,9 @@
                     status: "active"
                 });
             }
-            
+
             localStorage.setItem('aviator_db_users', JSON.stringify(users));
-            
+
             if (!localStorage.getItem('aviator_txns')) {
                 localStorage.setItem('aviator_txns', JSON.stringify([]));
             }
@@ -521,7 +576,7 @@
                 notes.forEach((freq, idx) => {
                     const osc = audioCtx.createOscillator();
                     const gain = audioCtx.createGain();
-                    
+
                     osc.type = 'sine';
                     osc.frequency.setValueAtTime(freq, now + idx * 0.05);
 
@@ -533,7 +588,7 @@
                     osc.start(now + idx * 0.05);
                     osc.stop(now + idx * 0.05 + 0.45);
                 });
-            } catch (e) {}
+            } catch (e) { }
         }
 
         // Toggle triggers
@@ -639,7 +694,7 @@
 
             setTimeout(() => {
                 const users = JSON.parse(localStorage.getItem('aviator_db_users')) || [];
-                
+
                 // Check dupes
                 const dup = users.find(u => u.email === email || u.phone === phone || (u.username && u.username.toLowerCase() === username));
                 spinner.style.display = "none";
@@ -710,17 +765,17 @@
             const val = document.getElementById('forgotEmailPhone').value.trim().toLowerCase();
             const alertBox = document.getElementById('forgotAlert');
             const resultArea = document.getElementById('recoveryResultArea');
-            
+
             if (!val) {
                 alertBox.className = "alert-box error";
                 alertBox.textContent = "Please enter your registered phone number or email.";
                 alertBox.style.display = "block";
                 return;
             }
-            
+
             const users = JSON.parse(localStorage.getItem('aviator_db_users')) || [];
             const found = users.find(u => u.email.toLowerCase() === val || (u.phone && u.phone.trim() === val));
-            
+
             if (found) {
                 alertBox.style.display = "none";
                 resultArea.style.display = "block";
@@ -745,4 +800,5 @@
         lucide.createIcons();
     </script>
 </body>
+
 </html>
