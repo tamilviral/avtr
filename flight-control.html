@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Aviator - Ground Control Dashboard</title>
     <link rel="stylesheet" href="styles.css">
-    <!-- Vercel Serverless DB Sync (Firebase) -->
-    <script type="module" src="sync-client.js"></script>
     <style>
         body.admin-body {
             background: #090a0f;
@@ -455,6 +453,11 @@
 
     </div>
 
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
+
     <script>
         // Check session
         let activeUser = null;
@@ -538,9 +541,29 @@
         }
 
         // User management
-        function renderUsers() {
+        async function renderUsers() {
             const body = document.getElementById('users-table-body');
-            const dbUsers = JSON.parse(localStorage.getItem('aviator_db_users')) || [];
+            let dbUsers = [];
+            
+            try {
+                if (typeof db !== 'undefined') {
+                    const snapshot = await db.collection("users").get();
+                    snapshot.forEach(doc => {
+                        dbUsers.push(doc.data());
+                    });
+                    if (dbUsers.length > 0) {
+                        localStorage.setItem('aviator_db_users', JSON.stringify(dbUsers));
+                    } else {
+                        // fallback to local if firebase is empty (e.g. freshly set up)
+                        dbUsers = JSON.parse(localStorage.getItem('aviator_db_users')) || [];
+                    }
+                } else {
+                    dbUsers = JSON.parse(localStorage.getItem('aviator_db_users')) || [];
+                }
+            } catch (e) {
+                console.error("Firebase fetch error, falling back to local storage", e);
+                dbUsers = JSON.parse(localStorage.getItem('aviator_db_users')) || [];
+            }
             
             body.innerHTML = '';
             dbUsers.forEach(u => {

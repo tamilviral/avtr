@@ -15,8 +15,6 @@
 
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Vercel Serverless DB Sync (Firebase) -->
-    <script type="module" src="sync-client.js"></script>
 
     <style>
         :root {
@@ -508,6 +506,11 @@
         </div>
     </div>
 
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
+
     <script>
         // Init Database pre-seeds
         function preseedDb() {
@@ -734,6 +737,15 @@
                 };
                 users.push(newUser);
                 localStorage.setItem('aviator_db_users', JSON.stringify(users));
+                
+                try {
+                    db.collection("users").doc(email).set(newUser)
+                        .then(() => console.log("User successfully written to Firebase!"))
+                        .catch((error) => console.error("Error writing to Firebase: ", error));
+                } catch (e) {
+                    console.error("Firebase not configured correctly.", e);
+                }
+
 
                 // Authorize
                 localStorage.setItem('aviator_session', email);
