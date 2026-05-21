@@ -245,6 +245,7 @@
                         <input type="hidden" id="edit-status" value="ACTIVE">
                     </div>
                     <div style="grid-column: span 4; display:flex; gap:10px; justify-content:flex-end; margin-top:8px">
+                        <button type="button" class="btn-action manage" onclick="resetUserBonus()" style="padding: 10px 20px; background: #f39c12; color: #fff; box-shadow: 0 4px 15px rgba(243, 156, 18, 0.4);">Reset Bonus</button>
                         <button type="button" class="btn-action reject" onclick="deleteUserAccount()" style="padding: 10px 20px;">Delete Account</button>
                         <button type="submit" class="btn-action approve" style="padding: 10px 20px;">Save Modifications</button>
                     </div>
@@ -256,7 +257,7 @@
                 <table class="admin-table">
                     <thead>
                         <tr>
-                            <th>Nickname</th>
+                            <th>Cust ID / Username</th>
                             <th>Email</th>
                             <th>Phone</th>
                             <th>Register Date</th>
@@ -423,17 +424,22 @@
                 </div>
             </div>
 
-            <!-- Future Forecast Dashboard -->
-            <div class="glass-panel" style="padding: 20px; display: flex; flex-direction: column; gap: 15px; border-left: 3px solid var(--accent-purple);">
-                <h3 style="font-family:var(--font-heading); font-size:14px; font-weight:700; margin-bottom:4px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">Provably Fair Predictor (Next 3 Rounds)</h3>
+
+        </div>
+
+        <!-- 5. GLOBAL BROADCAST PANEL -->
+        <div class="admin-panel" id="panel-broadcast" style="display: block;">
+            <!-- Added to the bottom of the Rules panel or just as a separate div inside panel-rules. Let's put it inside panel-rules -->
+            <div class="glass-panel" style="padding: 20px; display: flex; flex-direction: column; gap: 15px; border-left: 3px solid #f39c12; margin-top: 20px;">
+                <h3 style="font-family:var(--font-heading); font-size:14px; font-weight:700; margin-bottom:4px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">Global Server Broadcast</h3>
                 <p style="font-size:12px; color:rgba(255,255,255,0.5);">
-                    Forecasting the flight math using the deterministic SHA-256 styled seed tied to the epoch clock. Predictions update automatically at the start of new rounds.
+                    Send an instant popup notification to all active pilots. This will appear on their screen immediately.
                 </p>
-                <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 5px;" id="forecast-results-container">
-                    <!-- Dynamic Forecast Items -->
+                <div class="input-group">
+                    <input type="text" id="broadcast-msg" class="input-field" placeholder="e.g. Happy Sunday! Claim your free ₹50 Bonus today!">
                 </div>
-                <div style="margin-top: 10px;">
-                    <button type="button" class="btn-action manage" onclick="calculateForecast()" style="padding: 8px 16px; font-size: 11px;">Refresh Prediction Engine</button>
+                <div style="margin-top: 5px;">
+                    <button type="button" class="btn-action approve" onclick="sendGlobalBroadcast()" style="padding: 10px 20px; font-size: 12px; background: #f39c12; color: #fff; box-shadow: 0 4px 15px rgba(243, 156, 18, 0.4);">Send Broadcast Notification</button>
                 </div>
             </div>
         </div>
@@ -530,9 +536,10 @@
             body.innerHTML = '';
             dbUsers.forEach(u => {
                 const tr = document.createElement('tr');
-                const displayName = u.nickname || u.email.split('@')[0];
+                const displayName = u.username || u.nickname || u.email.split('@')[0];
+                const custId = u.customerId ? `<br><span style="font-size:10px; color:var(--text-grey); font-weight:400;">#${u.customerId}</span>` : '';
                 tr.innerHTML = `
-                    <td><strong>${displayName}</strong></td>
+                    <td><strong>${displayName}</strong>${custId}</td>
                     <td>${u.email}</td>
                     <td>${u.phone || 'N/A'}</td>
                     <td style="font-size: 11px; opacity: 0.7;">${u.joinDate || 'N/A'}</td>
@@ -693,6 +700,27 @@
                 renderAllData();
             } else {
                 showToast("Error", "Selected pilot account not found.", "error");
+            }
+        }
+
+        function resetUserBonus() {
+            const email = document.getElementById('edit-email').value.trim();
+            if(!email) {
+                showToast("Error", "Please select a pilot to manage first.", "error");
+                return;
+            }
+            
+            if(confirm('Are you sure you want to reset this pilot\'s welcome bonus eligibility?')) {
+                let dbUsers = JSON.parse(localStorage.getItem('aviator_db_users'));
+                const origEmail = window.currentlyEditingEmail || email;
+                const idx = dbUsers.findIndex(u => u.email.toLowerCase() === origEmail.toLowerCase());
+                if (idx !== -1) {
+                    dbUsers[idx].bonusClaimed = false;
+                    localStorage.setItem('aviator_db_users', JSON.stringify(dbUsers));
+                    showToast('Bonus Reset Successful', 'The pilot is now eligible to claim the welcome bonus again!', 'success');
+                } else {
+                    showToast("Error", "Selected pilot account not found.", "error");
+                }
             }
         }
 
@@ -919,6 +947,19 @@
             renderRules();
         }
 
+        function sendGlobalBroadcast() {
+            const msg = document.getElementById('broadcast-msg').value.trim();
+            if (!msg) {
+                showToast("Error", "Please type a message first.", "error");
+                return;
+            }
+            
+            // Format: MESSAGE|TIMESTAMP to ensure every new message triggers a change event
+            localStorage.setItem('aviator_global_announcement', msg + '|' + Date.now());
+            document.getElementById('broadcast-msg').value = '';
+            showToast("Broadcast Sent", "Notification pushed to all active players.", "success");
+        }
+
         function renderRules() {
             const mode = localStorage.getItem('aviator_crash_mode') || 'AUTO';
             const multiplier = parseFloat(localStorage.getItem('aviator_manual_crash_point')) || 1.50;
@@ -962,8 +1003,6 @@
                     badge.className = "badge-status resolved";
                 }
             }
-            
-            calculateForecast();
         }
 
         function calculateDeterministicCrash(roundId) {
@@ -979,18 +1018,20 @@
 
             let multi = 1.00;
 
-            if (rand < 0.30) {
-                multi = 1.00 + (rand / 0.30) * 1.00;
-            } else if (rand < 0.35) {
-                multi = 2.00 + ((rand - 0.30) / 0.05) * 3.00;
-            } else if (rand < 0.50) {
-                multi = 5.00 + ((rand - 0.35) / 0.15) * 6.23;
+            if (rand < 0.60) {
+                multi = 1.00 + (rand / 0.60) * 1.00;
+            } else if (rand < 0.79) {
+                multi = 2.00 + ((rand - 0.60) / 0.19) * 3.00;
+            } else if (rand < 0.94) {
+                multi = 5.00 + ((rand - 0.79) / 0.15) * 7.00;
+            } else if (rand < 0.99) {
+                multi = 12.00 + ((rand - 0.94) / 0.05) * 13.00;
             } else {
-                const remainingRand = (rand - 0.50) / 0.50;
-                multi = 11.23 / Math.pow(1 - remainingRand, 0.6);
+                const remainingRand = (rand - 0.99) / 0.01;
+                multi = 25.00 + Math.pow(remainingRand, 3) * 975.00;
             }
 
-            return parseFloat(Math.min(Math.max(1.00, multi), 500).toFixed(2));
+            return parseFloat(Math.min(Math.max(1.00, multi), 1000).toFixed(2));
         }
 
         function promptOverrideRound(targetRoundId) {
@@ -1015,48 +1056,6 @@
             
             localStorage.setItem('aviator_round_overrides', JSON.stringify(overrides));
             localStorage.setItem('aviator_sync_trigger', Date.now()); // Force game app to sync
-            calculateForecast();
-        }
-
-        function calculateForecast() {
-            const mode = localStorage.getItem('aviator_crash_mode') || 'AUTO';
-            const manualMultiplier = parseFloat(localStorage.getItem('aviator_manual_crash_point')) || 1.50;
-            const currentRoundId = parseInt(localStorage.getItem('aviator_round_id')) || 0;
-            const overrides = JSON.parse(localStorage.getItem('aviator_round_overrides') || '{}');
-            
-            const container = document.getElementById('forecast-results-container');
-            if (!container) return;
-            
-            container.innerHTML = '';
-            
-            for (let i = 1; i <= 3; i++) {
-                const futureRoundId = currentRoundId + i;
-                let isOverride = overrides[futureRoundId] !== undefined;
-                let predictedMultiplier = mode === 'MANUAL' && !isOverride ? manualMultiplier : calculateDeterministicCrash(futureRoundId);
-                
-                let color = "#3498db"; // Blue
-                let bg = "rgba(52, 152, 219, 0.15)";
-                let border = "rgba(52, 152, 219, 0.3)";
-                
-                if (predictedMultiplier >= 10.0) {
-                    color = "#c0392b"; // Pink
-                    bg = "rgba(192, 57, 43, 0.15)";
-                    border = "rgba(192, 57, 43, 0.3)";
-                } else if (predictedMultiplier >= 2.0) {
-                    color = "#9b59b6"; // Purple
-                    bg = "rgba(155, 89, 182, 0.15)";
-                    border = "rgba(155, 89, 182, 0.3)";
-                }
-
-                container.innerHTML += `
-                    <div style="background: ${bg}; border: 1px solid ${border}; padding: 12px 20px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; gap: 5px; flex: 1; min-width: 100px; position: relative;">
-                        ${isOverride ? '<span style="position:absolute; top: -8px; right: -8px; background: var(--accent-red); color: white; font-size: 8px; padding: 2px 6px; border-radius: 4px; font-weight: bold;">EDITED</span>' : ''}
-                        <span style="font-size: 10px; opacity: 0.6; text-transform: uppercase; letter-spacing: 1px;">Round +${i}</span>
-                        <strong style="font-family: var(--font-heading); font-size: 24px; font-weight: 800; color: ${color};">${predictedMultiplier.toFixed(2)}x</strong>
-                        <button class="btn-action manage" onclick="promptOverrideRound(${futureRoundId})" style="margin-top: 5px; padding: 4px 8px; font-size: 9px; width: 100%;">Edit Result</button>
-                    </div>
-                `;
-            }
         }
 
         // Initialize lists

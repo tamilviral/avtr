@@ -320,10 +320,11 @@
         <!-- 1. SIGN IN FORM -->
         <form class="auth-form active" id="loginForm">
             <div class="input-group">
-                <label>Pilot Email or Phone</label>
+            <div class="input-group">
+                <label>Username, Email, or Phone</label>
                 <div class="input-wrapper">
                     <i data-lucide="user" style="width: 16px; height: 16px;"></i>
-                    <input type="text" class="input-field" placeholder="pilot@aviator.com or phone" required id="loginId">
+                    <input type="text" class="input-field" placeholder="e.g. maverick99 or pilot@aviator.com" required id="loginId">
                 </div>
             </div>
             
@@ -348,6 +349,14 @@
 
         <!-- 2. PILOT REGISTER FORM -->
         <form class="auth-form" id="registerForm">
+            <div class="input-group">
+                <label>Pilot Username</label>
+                <div class="input-wrapper">
+                    <i data-lucide="user" style="width: 16px; height: 16px;"></i>
+                    <input type="text" class="input-field" placeholder="e.g. maverick99" required id="regUsername" minlength="3">
+                </div>
+            </div>
+
             <div class="input-group">
                 <label>Pilot Email Address</label>
                 <div class="input-wrapper">
@@ -377,6 +386,22 @@
                 <div class="input-wrapper">
                     <i data-lucide="shield-check" style="width: 16px; height: 16px;"></i>
                     <input type="password" class="input-field" placeholder="••••••••" required id="regConfirmPassword" minlength="6">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Bank AC & IFSC / UPI ID</label>
+                <div class="input-wrapper">
+                    <i data-lucide="landmark" style="width: 16px; height: 16px;"></i>
+                    <input type="text" class="input-field" placeholder="e.g. HDFC 12345 or pilot@upi" required id="regBankDetails">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Referral Code (Optional)</label>
+                <div class="input-wrapper">
+                    <i data-lucide="gift" style="width: 16px; height: 16px;"></i>
+                    <input type="text" class="input-field" placeholder="Referrer's Username or ID" id="regReferral">
                 </div>
             </div>
 
@@ -438,8 +463,11 @@
             // Ensure default pilot exists
             if (!users.some(u => u.email.toLowerCase() === 'pilot@aviator.com')) {
                 users.push({
+                    customerId: "1000000001",
+                    username: "pilot",
                     email: "pilot@aviator.com",
                     phone: "9952254507",
+                    bankDetails: "pilot@ybl",
                     password: "password123",
                     balance: 0.00,
                     joinDate: new Date().toLocaleString(),
@@ -531,7 +559,7 @@
 
             setTimeout(() => {
                 const users = JSON.parse(localStorage.getItem('aviator_db_users')) || [];
-                const matched = users.find(u => (u.email === loginId || u.phone === loginId) && u.password === loginPass);
+                const matched = users.find(u => (u.email === loginId || u.phone === loginId || (u.username && u.username.toLowerCase() === loginId.toLowerCase())) && u.password === loginPass);
 
                 spinner.style.display = "none";
                 submitSpan.style.opacity = "1";
@@ -567,10 +595,13 @@
             e.preventDefault();
             alertBox.className = "alert-box";
 
+            const username = document.getElementById('regUsername').value.trim().toLowerCase();
             const email = document.getElementById('regEmail').value.trim().toLowerCase();
             const phone = document.getElementById('regPhone').value.trim();
             const pass = document.getElementById('regPassword').value;
             const confirmPass = document.getElementById('regConfirmPassword').value;
+            const bankDetails = document.getElementById('regBankDetails').value.trim();
+            const referralCode = document.getElementById('regReferral').value.trim().toLowerCase();
             const spinner = document.getElementById('regSpinner');
             const submitSpan = registerForm.querySelector('.submit-btn span');
 
@@ -587,20 +618,37 @@
                 const users = JSON.parse(localStorage.getItem('aviator_db_users')) || [];
                 
                 // Check dupes
-                const dup = users.find(u => u.email === email || u.phone === phone);
+                const dup = users.find(u => u.email === email || u.phone === phone || (u.username && u.username.toLowerCase() === username));
                 spinner.style.display = "none";
                 submitSpan.style.opacity = "1";
 
                 if (dup) {
                     alertBox.className = "alert-box error";
-                    alertBox.textContent = "Duplicate registry! This email or phone is already authorized.";
+                    alertBox.textContent = "Duplicate registry! This username, email, or phone is already authorized.";
                     return;
+                }
+
+                // Auto Generate 10-digit Customer ID
+                const customerId = Math.floor(1000000000 + Math.random() * 9000000000).toString();
+
+                let referralMsg = "";
+                // Process Referral Bonus
+                if (referralCode !== "") {
+                    const referrerIndex = users.findIndex(u => (u.username && u.username.toLowerCase() === referralCode) || u.customerId === referralCode);
+                    if (referrerIndex !== -1) {
+                        users[referrerIndex].balance += 100.00;
+                        localStorage.setItem('aviator_sync_trigger', Date.now()); // Broadcast balance update
+                        referralMsg = " Referrer credited ₹100 bonus!";
+                    }
                 }
 
                 // Register user
                 const newUser = {
+                    customerId: customerId,
+                    username: username,
                     email: email,
                     phone: phone,
+                    bankDetails: bankDetails,
                     password: pass,
                     balance: 0.00,
                     joinDate: new Date().toLocaleString(),
@@ -609,13 +657,11 @@
                 users.push(newUser);
                 localStorage.setItem('aviator_db_users', JSON.stringify(users));
 
-                // No welcome bonus
-
                 // Authorize
                 localStorage.setItem('aviator_session', email);
                 localStorage.setItem('aviator_user', JSON.stringify(newUser));
                 alertBox.className = "alert-box success";
-                alertBox.textContent = "Pilot Account Created Successfully! Flying in...";
+                alertBox.textContent = "Pilot Account Created!" + referralMsg + " Flying in...";
                 playSuccessChord();
 
                 setTimeout(() => {

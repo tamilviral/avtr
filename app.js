@@ -142,6 +142,29 @@
         }
     }
 
+    window.claimCashOffer = function() {
+        if (!currentUser) return;
+        
+        if (currentUser.bonusClaimed) {
+            showToast("Offer Locked", "You have already claimed your one-time welcome bonus.", "warning");
+            return;
+        }
+        
+        // Update user state
+        currentUser.bonusClaimed = true;
+        updateDatabaseUserBalance(50.00); // Credit 50 INR
+        
+        // Save the flag to DB
+        const users = JSON.parse(localStorage.getItem('aviator_db_users'));
+        const idx = users.findIndex(u => u.email === currentUser.email);
+        if (idx !== -1) {
+            users[idx].bonusClaimed = true;
+            localStorage.setItem('aviator_db_users', JSON.stringify(users));
+        }
+        
+        showToast("Bonus Claimed!", "Your one-time welcome bonus of ₹50.00 has been credited to your pilot wallet.", "success");
+    };
+
     // -------------------------------------------------------------
     // 2. PROCEDURAL SOUND SYNTHESIZER
     // -------------------------------------------------------------
@@ -353,25 +376,25 @@
 
         let multi = 1.00;
 
-        if (rand < 0.30) {
-            // 30% chance to crash between 1.00x and 2.00x 
-            // (Leaves 70% chance to reach 2.00x or higher)
-            multi = 1.00 + (rand / 0.30) * 1.00;
-        } else if (rand < 0.35) {
-            // 5% chance to crash between 2.00x and 5.00x 
-            // (Leaves 65% chance to reach 5.00x or higher)
-            multi = 2.00 + ((rand - 0.30) / 0.05) * 3.00;
-        } else if (rand < 0.50) {
-            // 15% chance to crash between 5.00x and 11.23x 
-            // (Leaves 50% chance to reach 11.23x or higher)
-            multi = 5.00 + ((rand - 0.35) / 0.15) * 6.23;
+        if (rand < 0.60) {
+            // 60% chance to crash between 1.00x and 2.00x 
+            multi = 1.00 + (rand / 0.60) * 1.00;
+        } else if (rand < 0.79) {
+            // 19% chance to crash between 2.00x and 5.00x 
+            multi = 2.00 + ((rand - 0.60) / 0.19) * 3.00;
+        } else if (rand < 0.94) {
+            // 15% chance to crash between 5.00x and 12.00x 
+            multi = 5.00 + ((rand - 0.79) / 0.15) * 7.00;
+        } else if (rand < 0.99) {
+            // 5% chance to crash between 12.00x and 25.00x
+            multi = 12.00 + ((rand - 0.94) / 0.05) * 13.00;
         } else {
-            // 50% chance to crash above 11.23x
-            const remainingRand = (rand - 0.50) / 0.50; // Normalize to 0-1
-            multi = 11.23 / Math.pow(1 - remainingRand, 0.6); // Fat tail for extreme multipliers
+            // 1% chance to crash between 25.00x and 1000.00x
+            const remainingRand = (rand - 0.99) / 0.01; 
+            multi = 25.00 + Math.pow(remainingRand, 3) * 975.00; 
         }
 
-        return parseFloat(Math.min(Math.max(1.00, multi), 500).toFixed(2));
+        return parseFloat(Math.min(Math.max(1.00, multi), 1000).toFixed(2));
     }
 
     // -------------------------------------------------------------
@@ -1679,6 +1702,10 @@
                     addChatBubble(parsed.sender, parsed.msg);
                 }
             }
+            if (e.key === 'aviator_global_announcement' && e.newValue) {
+                const msg = e.newValue.split('|')[0];
+                showToast("FLIGHT CONTROL BROADCAST", msg, "success");
+            }
         });
 
         // Initialize HUD & state syncs
@@ -1700,6 +1727,13 @@
         document.body.addEventListener('click', () => {
             synth.init();
         }, { once: true });
+
+        // Automatic Welcome Bonus Pop-up
+        if (currentUser && !currentUser.bonusClaimed) {
+            setTimeout(() => {
+                showToast("Welcome Bonus", "Don't forget to claim your one-time ₹50 cash offer at the top right of the screen!", "success");
+            }, 3000);
+        }
     };
 
 })();
