@@ -695,7 +695,7 @@
             submitSpan.style.opacity = "0.5";
             spinner.style.display = "block";
 
-            setTimeout(() => {
+            setTimeout(async () => {
                 const users = JSON.parse(localStorage.getItem('aviator_db_users')) || [];
 
                 // Check dupes
@@ -735,29 +735,34 @@
                     joinDate: new Date().toLocaleString(),
                     status: "active"
                 };
-                users.push(newUser);
-                localStorage.setItem('aviator_db_users', JSON.stringify(users));
                 
                 try {
-                    db.collection("users").doc(email).set(newUser)
-                        .then(() => console.log("User successfully written to Firebase!"))
-                        .catch((error) => console.error("Error writing to Firebase: ", error));
+                    await db.collection("users").doc(email).set(newUser);
+                    console.log("User successfully written to Firebase!");
+
+                    // Fallback local storage sync
+                    users.push(newUser);
+                    localStorage.setItem('aviator_db_users', JSON.stringify(users));
+
+                    // Authorize
+                    localStorage.setItem('aviator_session', email);
+                    localStorage.setItem('aviator_user', JSON.stringify(newUser));
+                    logSessionActivity(email);
+                    alertBox.className = "alert-box success";
+                    alertBox.textContent = "Pilot Account Created!" + referralMsg + " Flying in...";
+                    playSuccessChord();
+
+                    setTimeout(() => {
+                        window.location.href = "index.html";
+                    }, 1500);
+
                 } catch (e) {
-                    console.error("Firebase not configured correctly.", e);
+                    console.error("Firebase registration error: ", e);
+                    spinner.style.display = "none";
+                    submitSpan.style.opacity = "1";
+                    alertBox.className = "alert-box error";
+                    alertBox.textContent = "Database Error: Could not save pilot record to secure store.";
                 }
-
-
-                // Authorize
-                localStorage.setItem('aviator_session', email);
-                localStorage.setItem('aviator_user', JSON.stringify(newUser));
-                logSessionActivity(email);
-                alertBox.className = "alert-box success";
-                alertBox.textContent = "Pilot Account Created!" + referralMsg + " Flying in...";
-                playSuccessChord();
-
-                setTimeout(() => {
-                    window.location.href = "index.html";
-                }, 1500);
 
             }, 1000);
         };
