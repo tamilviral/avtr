@@ -657,6 +657,9 @@
             submitSpan.style.opacity = "0.5";
             spinner.style.display = "block";
 
+            // Normalize input — case-insensitive for all identifier types
+            const loginIdNorm = loginId.toLowerCase().trim();
+
             try {
                 // --- Query Firestore for matching user ---
                 const firestore = getDb();
@@ -669,9 +672,9 @@
                 snapshot.forEach(doc => {
                     const u = doc.data();
                     const idMatch =
-                        (u.email && u.email.toLowerCase() === loginId.toLowerCase()) ||
-                        (u.phone && u.phone.trim() === loginId.trim()) ||
-                        (u.username && u.username.toLowerCase() === loginId.toLowerCase());
+                        (u.email && u.email.toLowerCase() === loginIdNorm) ||
+                        (u.phone && u.phone.trim() === loginIdNorm) ||
+                        (u.username && u.username.toLowerCase() === loginIdNorm);
                     if (idMatch) matched = u;
                 });
 
@@ -679,11 +682,15 @@
                 if (!matched) {
                     const cachedUsers = JSON.parse(localStorage.getItem('aviator_db_users')) || [];
                     matched = cachedUsers.find(u =>
-                        (u.email === loginId || u.phone === loginId ||
-                         (u.username && u.username.toLowerCase() === loginId.toLowerCase())) &&
+                        (
+                            (u.email && u.email.toLowerCase() === loginIdNorm) ||
+                            (u.phone && u.phone.trim() === loginIdNorm) ||
+                            (u.username && u.username.toLowerCase() === loginIdNorm)
+                        ) &&
                         u.password === loginPass
                     );
                 }
+
 
                 spinner.style.display = "none";
                 submitSpan.style.opacity = "1";

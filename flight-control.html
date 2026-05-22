@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -44,7 +45,7 @@
             border-radius: 6px;
             font-weight: 700;
             font-size: 13px;
-            color: rgba(255,255,255,0.6);
+            color: rgba(255, 255, 255, 0.6);
             cursor: pointer;
             transition: var(--transition-fast);
         }
@@ -52,7 +53,7 @@
         .admin-tab.active {
             background: var(--bg-panel-light);
             color: #ffffff;
-            border: 1px solid rgba(255,255,255,0.05);
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .admin-panel {
@@ -72,7 +73,7 @@
             border: 1px solid var(--border-color);
             border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
         }
 
         .admin-table {
@@ -82,7 +83,8 @@
             font-size: 13px;
         }
 
-        .admin-table th, .admin-table td {
+        .admin-table th,
+        .admin-table td {
             padding: 12px 16px;
             border-bottom: 1px solid var(--border-color);
         }
@@ -94,11 +96,11 @@
             text-transform: uppercase;
             font-size: 11px;
             letter-spacing: 0.5px;
-            color: rgba(255,255,255,0.4);
+            color: rgba(255, 255, 255, 0.4);
         }
 
         .admin-table tr:hover td {
-            background: rgba(255,255,255,0.01);
+            background: rgba(255, 255, 255, 0.01);
         }
 
         /* Action Buttons */
@@ -113,9 +115,21 @@
             transition: var(--transition-fast);
         }
 
-        .btn-action.approve { background: var(--accent-green); color: #000000; }
-        .btn-action.reject { background: #5c0505; color: #ff1744; border: 1px solid #ff1744; }
-        .btn-action.manage { background: #00b0ff; color: #000000; }
+        .btn-action.approve {
+            background: var(--accent-green);
+            color: #000000;
+        }
+
+        .btn-action.reject {
+            background: #5c0505;
+            color: #ff1744;
+            border: 1px solid #ff1744;
+        }
+
+        .btn-action.manage {
+            background: #00b0ff;
+            color: #000000;
+        }
 
         .form-row {
             display: grid;
@@ -174,22 +188,32 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     </style>
 </head>
+
 <body class="admin-body">
     <div id="toast-container"></div>
 
     <div class="admin-container">
-        
+
         <div class="admin-header">
             <div style="display:flex; align-items:center; gap:10px">
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="var(--accent-red)">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z"/>
+                    <path
+                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z" />
                 </svg>
-                <h1 style="font-family:var(--font-heading); font-size:24px; font-weight:800; letter-spacing:0.5px">GROUND CONTROL PANEL</h1>
+                <h1 style="font-family:var(--font-heading); font-size:24px; font-weight:800; letter-spacing:0.5px">
+                    GROUND CONTROL PANEL</h1>
             </div>
             <button class="btn-deposit" onclick="window.location.href='index.html'">Back to Deck</button>
         </div>
@@ -206,11 +230,13 @@
         <div class="admin-panel active" id="panel-users">
             <!-- Edit Account Form -->
             <div class="glass-panel" style="padding: 20px;">
-                <h2 style="font-family:var(--font-heading); font-size:16px; font-weight:700; margin-bottom:12px">Edit / Modify Pilot Account</h2>
+                <h2 style="font-family:var(--font-heading); font-size:16px; font-weight:700; margin-bottom:12px">Edit /
+                    Modify Pilot Account</h2>
                 <form id="edit-user-form" onsubmit="saveUserModification(event)" class="form-row">
                     <div class="input-group">
                         <label>Target Email (Editable)</label>
-                        <input type="email" id="edit-email" class="input-field" placeholder="Choose player to manage or edit..." required>
+                        <input type="email" id="edit-email" class="input-field"
+                            placeholder="Choose player to manage or edit..." required>
                     </div>
                     <div class="input-group">
                         <label>Nickname</label>
@@ -239,24 +265,35 @@
                     <div class="input-group">
                         <label>Account Status</label>
                         <div class="status-segmented-control">
-                            <button type="button" id="status-btn-active" class="status-option-btn active-status" onclick="updateStatusSelection('ACTIVE')">ACTIVE</button>
-                            <button type="button" id="status-btn-banned" class="status-option-btn" onclick="updateStatusSelection('BANNED')">BANNED</button>
+                            <button type="button" id="status-btn-active" class="status-option-btn active-status"
+                                onclick="updateStatusSelection('ACTIVE')">ACTIVE</button>
+                            <button type="button" id="status-btn-banned" class="status-option-btn"
+                                onclick="updateStatusSelection('BANNED')">BANNED</button>
                         </div>
                         <input type="hidden" id="edit-status" value="ACTIVE">
                     </div>
                     <div style="grid-column: span 4; display:flex; gap:10px; justify-content:flex-end; margin-top:8px">
-                        <button type="button" class="btn-action manage" onclick="resetUserBonus()" style="padding: 10px 20px; background: #f39c12; color: #fff; box-shadow: 0 4px 15px rgba(243, 156, 18, 0.4);">Reset Bonus</button>
-                        <button type="button" class="btn-action reject" onclick="deleteUserAccount()" style="padding: 10px 20px;">Delete Account</button>
-                        <button type="submit" class="btn-action approve" style="padding: 10px 20px;">Save Modifications</button>
+                        <button type="button" class="btn-action manage" onclick="resetUserBonus()"
+                            style="padding: 10px 20px; background: #f39c12; color: #fff; box-shadow: 0 4px 15px rgba(243, 156, 18, 0.4);">Reset
+                            Bonus</button>
+                        <button type="button" class="btn-action reject" onclick="deleteUserAccount()"
+                            style="padding: 10px 20px;">Delete Account</button>
+                        <button type="submit" class="btn-action approve" style="padding: 10px 20px;">Save
+                            Modifications</button>
                     </div>
                 </form>
             </div>
 
             <!-- Users table list -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; margin-top: 24px;">
-                <h3 style="font-family:var(--font-heading); font-size:16px; font-weight:700;">Pilot Registry Database</h3>
-                <button class="btn-deposit" onclick="downloadAllDataCSV()" style="background: var(--rzp-blue); color: #fff; padding: 10px 16px; font-size: 13px;">
-                    <i data-lucide="download" style="width: 14px; height: 14px; margin-right: 6px; display:inline-block; vertical-align:-2px;"></i> Download Data Statement
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; margin-top: 24px;">
+                <h3 style="font-family:var(--font-heading); font-size:16px; font-weight:700;">Pilot Registry Database
+                </h3>
+                <button class="btn-deposit" onclick="downloadAllDataCSV()"
+                    style="background: var(--rzp-blue); color: #fff; padding: 10px 16px; font-size: 13px;">
+                    <i data-lucide="download"
+                        style="width: 14px; height: 14px; margin-right: 6px; display:inline-block; vertical-align:-2px;"></i>
+                    Download Data Statement
                 </button>
             </div>
             <div class="admin-table-container">
@@ -285,7 +322,9 @@
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px">
                 <!-- User Payout history -->
                 <div class="admin-table-container">
-                    <h3 style="font-family:var(--font-heading); font-size:13px; font-weight:700; padding:12px 16px; background:#11131c; border-bottom:1px solid var(--border-color)">Selected Pilot: Balance Audits</h3>
+                    <h3
+                        style="font-family:var(--font-heading); font-size:13px; font-weight:700; padding:12px 16px; background:#11131c; border-bottom:1px solid var(--border-color)">
+                        Selected Pilot: Balance Audits</h3>
                     <table class="admin-table">
                         <thead>
                             <tr>
@@ -296,14 +335,18 @@
                             </tr>
                         </thead>
                         <tbody id="user-audit-balances">
-                            <tr><td colspan="4" style="text-align:center; opacity:0.5">Select a pilot to inspect.</td></tr>
+                            <tr>
+                                <td colspan="4" style="text-align:center; opacity:0.5">Select a pilot to inspect.</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
 
                 <!-- User Flights betting history -->
                 <div class="admin-table-container">
-                    <h3 style="font-family:var(--font-heading); font-size:13px; font-weight:700; padding:12px 16px; background:#11131c; border-bottom:1px solid var(--border-color)">Selected Pilot: Betting Audits</h3>
+                    <h3
+                        style="font-family:var(--font-heading); font-size:13px; font-weight:700; padding:12px 16px; background:#11131c; border-bottom:1px solid var(--border-color)">
+                        Selected Pilot: Betting Audits</h3>
                     <table class="admin-table">
                         <thead>
                             <tr>
@@ -314,7 +357,9 @@
                             </tr>
                         </thead>
                         <tbody id="user-audit-flights">
-                            <tr><td colspan="4" style="text-align:center; opacity:0.5">Select a pilot to inspect.</td></tr>
+                            <tr>
+                                <td colspan="4" style="text-align:center; opacity:0.5">Select a pilot to inspect.</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -370,62 +415,83 @@
         <!-- 4. FLIGHT RULES PANEL -->
         <div class="admin-panel" id="panel-rules">
             <div class="glass-panel" style="padding: 24px; display: flex; flex-direction: column; gap: 20px;">
-                <h2 style="font-family:var(--font-heading); font-size:18px; font-weight:700; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 8px;">
+                <h2
+                    style="font-family:var(--font-heading); font-size:18px; font-weight:700; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 8px;">
                     Flight Crash / Flew Away Controls
                 </h2>
-                
+
                 <div class="input-group" style="margin-bottom: 10px;">
-                    <label style="display: block; font-size: 13px; font-weight: 700; margin-bottom: 8px; color: rgba(255,255,255,0.7);">
+                    <label
+                        style="display: block; font-size: 13px; font-weight: 700; margin-bottom: 8px; color: rgba(255,255,255,0.7);">
                         Control Mode
                     </label>
                     <div class="status-segmented-control" style="max-width: 400px;">
-                        <button type="button" id="rules-btn-auto" class="status-option-btn active-status" onclick="updateRulesModeSelection('AUTO')">AUTOMATIC (FAIR)</button>
-                        <button type="button" id="rules-btn-manual" class="status-option-btn" onclick="updateRulesModeSelection('MANUAL')">MANUAL OVERRIDE</button>
+                        <button type="button" id="rules-btn-auto" class="status-option-btn active-status"
+                            onclick="updateRulesModeSelection('AUTO')">AUTOMATIC (FAIR)</button>
+                        <button type="button" id="rules-btn-manual" class="status-option-btn"
+                            onclick="updateRulesModeSelection('MANUAL')">MANUAL OVERRIDE</button>
                     </div>
                     <input type="hidden" id="rules-mode" value="AUTO">
                 </div>
 
-                <div id="manual-settings-wrapper" style="display: none; flex-direction: column; gap: 15px; animation: fadeIn 0.25s ease-out;">
+                <div id="manual-settings-wrapper"
+                    style="display: none; flex-direction: column; gap: 15px; animation: fadeIn 0.25s ease-out;">
                     <div class="input-group" style="max-width: 300px;">
-                        <label style="display: block; font-size: 13px; font-weight: 700; margin-bottom: 8px; color: rgba(255,255,255,0.7);">
+                        <label
+                            style="display: block; font-size: 13px; font-weight: 700; margin-bottom: 8px; color: rgba(255,255,255,0.7);">
                             Manual Flew Away Multiplier (x)
                         </label>
-                        <input type="number" id="rules-manual-multiplier" class="input-field" step="0.01" min="1.00" value="1.50" style="font-size: 16px; font-weight: 800; text-align: center; color: var(--accent-green);">
+                        <input type="number" id="rules-manual-multiplier" class="input-field" step="0.01" min="1.00"
+                            value="1.50"
+                            style="font-size: 16px; font-weight: 800; text-align: center; color: var(--accent-green);">
                     </div>
 
                     <div class="input-group">
-                        <label style="display: block; font-size: 11px; font-weight: 700; margin-bottom: 8px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.5px;">
+                        <label
+                            style="display: block; font-size: 11px; font-weight: 700; margin-bottom: 8px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.5px;">
                             Quick Preset Multipliers
                         </label>
                         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                            <button type="button" class="btn-action manage" onclick="setPresetMultiplier(1.00)" style="padding: 8px 16px; font-size: 12px;">1.00x (Instant Crash)</button>
-                            <button type="button" class="btn-action manage" onclick="setPresetMultiplier(1.20)" style="padding: 8px 16px; font-size: 12px;">1.20x</button>
-                            <button type="button" class="btn-action manage" onclick="setPresetMultiplier(1.50)" style="padding: 8px 16px; font-size: 12px;">1.50x</button>
-                            <button type="button" class="btn-action manage" onclick="setPresetMultiplier(2.00)" style="padding: 8px 16px; font-size: 12px;">2.00x</button>
-                            <button type="button" class="btn-action manage" onclick="setPresetMultiplier(5.00)" style="padding: 8px 16px; font-size: 12px;">5.00x</button>
-                            <button type="button" class="btn-action manage" onclick="setPresetMultiplier(10.00)" style="padding: 8px 16px; font-size: 12px;">10.00x</button>
-                            <button type="button" class="btn-action manage" onclick="setPresetMultiplier(50.00)" style="padding: 8px 16px; font-size: 12px;">50.00x</button>
+                            <button type="button" class="btn-action manage" onclick="setPresetMultiplier(1.00)"
+                                style="padding: 8px 16px; font-size: 12px;">1.00x (Instant Crash)</button>
+                            <button type="button" class="btn-action manage" onclick="setPresetMultiplier(1.20)"
+                                style="padding: 8px 16px; font-size: 12px;">1.20x</button>
+                            <button type="button" class="btn-action manage" onclick="setPresetMultiplier(1.50)"
+                                style="padding: 8px 16px; font-size: 12px;">1.50x</button>
+                            <button type="button" class="btn-action manage" onclick="setPresetMultiplier(2.00)"
+                                style="padding: 8px 16px; font-size: 12px;">2.00x</button>
+                            <button type="button" class="btn-action manage" onclick="setPresetMultiplier(5.00)"
+                                style="padding: 8px 16px; font-size: 12px;">5.00x</button>
+                            <button type="button" class="btn-action manage" onclick="setPresetMultiplier(10.00)"
+                                style="padding: 8px 16px; font-size: 12px;">10.00x</button>
+                            <button type="button" class="btn-action manage" onclick="setPresetMultiplier(50.00)"
+                                style="padding: 8px 16px; font-size: 12px;">50.00x</button>
                         </div>
                     </div>
                 </div>
 
-                <div style="display: flex; align-items: center; justify-content: flex-end; margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 15px;">
-                    <button type="button" class="btn-action approve" onclick="saveFlightRules()" style="padding: 10px 24px; font-size: 12px;">
+                <div
+                    style="display: flex; align-items: center; justify-content: flex-end; margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 15px;">
+                    <button type="button" class="btn-action approve" onclick="saveFlightRules()"
+                        style="padding: 10px 24px; font-size: 12px;">
                         Save Rules & Apply
                     </button>
                 </div>
             </div>
 
             <!-- Current Rules Status Card -->
-            <div class="glass-panel" style="padding: 20px; display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.02); margin-bottom: 20px;">
+            <div class="glass-panel"
+                style="padding: 20px; display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.02); margin-bottom: 20px;">
                 <div>
-                    <h3 style="font-family:var(--font-heading); font-size:14px; font-weight:700; margin-bottom:4px;">Active System Configuration</h3>
+                    <h3 style="font-family:var(--font-heading); font-size:14px; font-weight:700; margin-bottom:4px;">
+                        Active System Configuration</h3>
                     <p style="font-size:12px; color:rgba(255,255,255,0.5);" id="rules-status-desc">
                         Currently running in Automatic Mode (Provably Fair).
                     </p>
                 </div>
                 <div style="text-align: right;">
-                    <span id="rules-status-badge" class="badge-status resolved" style="padding: 6px 14px; font-size: 12px; font-weight: 800;">
+                    <span id="rules-status-badge" class="badge-status resolved"
+                        style="padding: 6px 14px; font-size: 12px; font-weight: 800;">
                         AUTO
                     </span>
                 </div>
@@ -437,16 +503,23 @@
         <!-- 5. GLOBAL BROADCAST PANEL -->
         <div class="admin-panel" id="panel-broadcast" style="display: block;">
             <!-- Added to the bottom of the Rules panel or just as a separate div inside panel-rules. Let's put it inside panel-rules -->
-            <div class="glass-panel" style="padding: 20px; display: flex; flex-direction: column; gap: 15px; border-left: 3px solid #f39c12; margin-top: 20px;">
-                <h3 style="font-family:var(--font-heading); font-size:14px; font-weight:700; margin-bottom:4px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">Global Server Broadcast</h3>
+            <div class="glass-panel"
+                style="padding: 20px; display: flex; flex-direction: column; gap: 15px; border-left: 3px solid #f39c12; margin-top: 20px;">
+                <h3
+                    style="font-family:var(--font-heading); font-size:14px; font-weight:700; margin-bottom:4px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
+                    Global Server Broadcast</h3>
                 <p style="font-size:12px; color:rgba(255,255,255,0.5);">
-                    Send an instant popup notification to all active pilots. This will appear on their screen immediately.
+                    Send an instant popup notification to all active pilots. This will appear on their screen
+                    immediately.
                 </p>
                 <div class="input-group">
-                    <input type="text" id="broadcast-msg" class="input-field" placeholder="e.g. Happy Sunday! Claim your free ₹50 Bonus today!">
+                    <input type="text" id="broadcast-msg" class="input-field"
+                        placeholder="e.g. Happy Sunday! Claim your free ₹50 Bonus today!">
                 </div>
                 <div style="margin-top: 5px;">
-                    <button type="button" class="btn-action approve" onclick="sendGlobalBroadcast()" style="padding: 10px 20px; font-size: 12px; background: #f39c12; color: #fff; box-shadow: 0 4px 15px rgba(243, 156, 18, 0.4);">Send Broadcast Notification</button>
+                    <button type="button" class="btn-action approve" onclick="sendGlobalBroadcast()"
+                        style="padding: 10px 20px; font-size: 12px; background: #f39c12; color: #fff; box-shadow: 0 4px 15px rgba(243, 156, 18, 0.4);">Send
+                        Broadcast Notification</button>
                 </div>
             </div>
         </div>
@@ -455,6 +528,7 @@
 
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="firebase-config.js"></script>
 
@@ -466,8 +540,8 @@
             window.location.href = "login.html";
         } else {
             activeUser = JSON.parse(savedSession);
-            if (activeUser.email.toLowerCase() !== 'admin@admin') {
-                alert("ACCESS DENIED: Ground Control terminal authorization is restricted to Admin@admin credentials only.");
+            if (activeUser.email.toLowerCase() !== 'admin') {
+                alert("ACCESS DENIED: Ground Control terminal authorization is restricted to Admin credentials only.");
                 window.location.href = "index.html";
             }
         }
@@ -477,7 +551,7 @@
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
-            
+
             let iconSVG = '';
             if (type === 'success') {
                 iconSVG = `<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`;
@@ -500,13 +574,13 @@
                 <span class="toast-close-btn" onclick="const t = this.closest('.toast'); t.style.animation = 'toast-fluid-out 0.25s ease-in forwards'; setTimeout(() => t.remove(), 250);">&times;</span>
                 <div class="toast-timer"></div>
             `;
-            
+
             container.appendChild(toast);
-            
+
             const timer = toast.querySelector('.toast-timer');
             timer.style.transition = 'transform 3s linear';
             setTimeout(() => timer.style.transform = 'scaleX(0)', 50);
-            
+
             setTimeout(() => {
                 if (toast.parentNode) {
                     toast.style.animation = 'toast-fluid-out 0.3s cubic-bezier(0.25, 1, 0.5, 1) forwards';
@@ -520,16 +594,16 @@
         function setPanel(panelId) {
             const panels = document.querySelectorAll('.admin-panel');
             const tabs = document.querySelectorAll('.admin-tab');
-            
+
             panels.forEach(p => p.classList.remove('active'));
             tabs.forEach(t => t.classList.remove('active'));
-            
+
             document.getElementById(`panel-${panelId}`).classList.add('active');
             document.getElementById(`tab-${panelId}`).classList.add('active');
-            
+
             // Save state so page refresh doesn't jump back to home tab
             localStorage.setItem('aviator_admin_active_tab', panelId);
-            
+
             renderAllData();
         }
 
@@ -544,7 +618,7 @@
         async function renderUsers() {
             const body = document.getElementById('users-table-body');
             let dbUsers = [];
-            
+
             try {
                 if (typeof db !== 'undefined') {
                     const snapshot = await db.collection("users").get();
@@ -564,7 +638,7 @@
                 console.error("Firebase fetch error, falling back to local storage", e);
                 dbUsers = JSON.parse(localStorage.getItem('aviator_db_users')) || [];
             }
-            
+
             body.innerHTML = '';
             dbUsers.forEach(u => {
                 const tr = document.createElement('tr');
@@ -596,10 +670,10 @@
             const activeBtn = document.getElementById('status-btn-active');
             const bannedBtn = document.getElementById('status-btn-banned');
             const hiddenInput = document.getElementById('edit-status');
-            
+
             const cleanStatus = (status || 'ACTIVE').toUpperCase();
             hiddenInput.value = cleanStatus;
-            
+
             if (cleanStatus === 'BANNED') {
                 activeBtn.className = "status-option-btn";
                 bannedBtn.className = "status-option-btn banned-status";
@@ -622,7 +696,7 @@
                 document.getElementById('edit-upi').value = user.upiId || '';
                 document.getElementById('edit-bank').value = user.bankDetails || '';
                 updateStatusSelection(user.status || 'ACTIVE');
-                
+
                 renderAuditBoards(email);
             }
         }
@@ -630,7 +704,7 @@
         function renderAuditBoards(email) {
             const txns = JSON.parse(localStorage.getItem('aviator_txns')) || [];
             const userTxns = txns.filter(t => t.email.toLowerCase() === email.toLowerCase());
-            
+
             // Balances Audit
             const balBody = document.getElementById('user-audit-balances');
             const balances = userTxns.filter(t => t.type === 'DEPOSIT' || t.type === 'WITHDRAWAL');
@@ -643,7 +717,7 @@
                         <tr>
                             <td>${new Date(b.date).toLocaleDateString()}</td>
                             <td>${b.type}</td>
-                            <td style="color:${b.type==='DEPOSIT'?'var(--accent-green)':'var(--accent-red)'}">₹${b.amount.toFixed(2)}</td>
+                            <td style="color:${b.type === 'DEPOSIT' ? 'var(--accent-green)' : 'var(--accent-red)'}">₹${b.amount.toFixed(2)}</td>
                             <td>${b.status}</td>
                         </tr>
                     `;
@@ -663,14 +737,14 @@
                             <td>${new Date(f.date).toLocaleDateString()}</td>
                             <td>₹${f.amount.toFixed(2)}</td>
                             <td>${f.multiplier > 0 ? f.multiplier + 'x' : 'N/A'}</td>
-                            <td style="color:${f.status==='SUCCESS'?'var(--accent-green)':'var(--accent-red)'}">${f.status}</td>
+                            <td style="color:${f.status === 'SUCCESS' ? 'var(--accent-green)' : 'var(--accent-red)'}">${f.status}</td>
                         </tr>
                     `;
                 });
             }
         }
 
-        function saveUserModification(e) {
+        async function saveUserModification(e) {
             e.preventDefault();
             const email = document.getElementById('edit-email').value.trim();
             const nickname = document.getElementById('edit-nickname').value.trim();
@@ -680,11 +754,11 @@
             const status = document.getElementById('edit-status').value;
             const upiId = document.getElementById('edit-upi').value.trim();
             const bankDetails = document.getElementById('edit-bank').value.trim();
-            
+
             const dbUsers = JSON.parse(localStorage.getItem('aviator_db_users')) || [];
             const origEmail = window.currentlyEditingEmail || email;
             const idx = dbUsers.findIndex(u => u.email.toLowerCase() === origEmail.toLowerCase());
-            
+
             if (idx !== -1) {
                 // If email has changed, cascade updates to all associated tickets & txns!
                 if (origEmail.toLowerCase() !== email.toLowerCase()) {
@@ -695,7 +769,7 @@
                         }
                     });
                     localStorage.setItem('aviator_tickets', JSON.stringify(tickets));
-                    
+
                     let txns = JSON.parse(localStorage.getItem('aviator_txns')) || [];
                     txns.forEach(t => {
                         if (t.email.toLowerCase() === origEmail.toLowerCase()) {
@@ -703,7 +777,7 @@
                         }
                     });
                     localStorage.setItem('aviator_txns', JSON.stringify(txns));
-                    
+
                     const activeEmail = localStorage.getItem('aviator_session');
                     if (activeEmail && activeEmail.toLowerCase() === origEmail.toLowerCase()) {
                         localStorage.setItem('aviator_session', email);
@@ -713,8 +787,17 @@
                             localStorage.setItem('aviator_user', JSON.stringify(sessionUser));
                         }
                     }
+
+                    // Delete old Firestore doc and create new one with new email key
+                    try {
+                        const oldDoc = await db.collection('users').doc(origEmail).get();
+                        if (oldDoc.exists) {
+                            await db.collection('users').doc(email).set(oldDoc.data());
+                            await db.collection('users').doc(origEmail).delete();
+                        }
+                    } catch (fe) { console.error('Firebase email-change error:', fe); }
                 }
-                
+
                 dbUsers[idx].email = email;
                 dbUsers[idx].nickname = nickname;
                 dbUsers[idx].phone = phone;
@@ -723,10 +806,19 @@
                 dbUsers[idx].status = status;
                 dbUsers[idx].upiId = upiId;
                 dbUsers[idx].bankDetails = bankDetails;
-                
+
                 localStorage.setItem('aviator_db_users', JSON.stringify(dbUsers));
-                showToast("Success", "Pilot account profile updated.", "success");
-                
+
+                // --- Sync to Firestore ---
+                try {
+                    const updatePayload = { nickname, phone, balance, password, status, upiId, bankDetails };
+                    await db.collection('users').doc(email).update(updatePayload);
+                    showToast("✅ Successfully Updated", "", "success");
+                } catch (fe) {
+                    console.error('Firebase update error:', fe);
+                    showToast("Saved Locally", "Saved to local cache. Firebase sync failed: " + fe.message, "warning");
+                }
+
                 document.getElementById('edit-user-form').reset();
                 updateStatusSelection('ACTIVE');
                 window.currentlyEditingEmail = null;
@@ -736,20 +828,26 @@
             }
         }
 
-        function resetUserBonus() {
+        async function resetUserBonus() {
             const email = document.getElementById('edit-email').value.trim();
-            if(!email) {
+            if (!email) {
                 showToast("Error", "Please select a pilot to manage first.", "error");
                 return;
             }
-            
-            if(confirm('Are you sure you want to reset this pilot\'s welcome bonus eligibility?')) {
+
+            if (confirm('Are you sure you want to reset this pilot\'s welcome bonus eligibility?')) {
                 let dbUsers = JSON.parse(localStorage.getItem('aviator_db_users'));
                 const origEmail = window.currentlyEditingEmail || email;
                 const idx = dbUsers.findIndex(u => u.email.toLowerCase() === origEmail.toLowerCase());
                 if (idx !== -1) {
                     dbUsers[idx].bonusClaimed = false;
                     localStorage.setItem('aviator_db_users', JSON.stringify(dbUsers));
+
+                    // --- Sync to Firestore ---
+                    try {
+                        await db.collection('users').doc(dbUsers[idx].email).update({ bonusClaimed: false });
+                    } catch (fe) { console.error('Firebase bonus reset error:', fe); }
+
                     showToast('Bonus Reset Successful', 'The pilot is now eligible to claim the welcome bonus again!', 'success');
                 } else {
                     showToast("Error", "Selected pilot account not found.", "error");
@@ -757,25 +855,37 @@
             }
         }
 
-        function deleteUserAccount() {
+        async function deleteUserAccount() {
             const email = document.getElementById('edit-email').value;
             const targetEmail = window.currentlyEditingEmail || email;
             if (!targetEmail) {
                 showToast("Action Failed", "Please select a pilot account first.", "error");
                 return;
             }
-            
+
             if (confirm(`Are you sure you want to permanently delete player ${targetEmail}?`)) {
+                // --- Signal active game session to terminate immediately ---
+                localStorage.setItem('aviator_force_logout', targetEmail);
+                localStorage.setItem('aviator_sync_trigger', Date.now()); // wake up game tab
+
                 let dbUsers = JSON.parse(localStorage.getItem('aviator_db_users')) || [];
                 dbUsers = dbUsers.filter(u => u.email.toLowerCase() !== targetEmail.toLowerCase());
                 localStorage.setItem('aviator_db_users', JSON.stringify(dbUsers));
-                
+
                 // Prune tickets
                 let tickets = JSON.parse(localStorage.getItem('aviator_tickets')) || [];
                 tickets = tickets.filter(t => t.email.toLowerCase() !== targetEmail.toLowerCase());
                 localStorage.setItem('aviator_tickets', JSON.stringify(tickets));
-                
-                showToast("Account Deleted", "Pilot account registry wiped.", "success");
+
+                // --- Delete from Firestore ---
+                try {
+                    await db.collection('users').doc(targetEmail).delete();
+                    showToast("Account Deleted", "Pilot account wiped from Firebase & local cache.", "success");
+                } catch (fe) {
+                    console.error('Firebase delete error:', fe);
+                    showToast("Deleted Locally", "Removed locally. Firebase delete failed: " + fe.message, "warning");
+                }
+
                 document.getElementById('edit-user-form').reset();
                 updateStatusSelection('ACTIVE');
                 window.currentlyEditingEmail = null;
@@ -787,18 +897,18 @@
         function renderTxns() {
             const body = document.getElementById('txns-table-body');
             const txns = JSON.parse(localStorage.getItem('aviator_txns')) || [];
-            
+
             // Sort by date desc
-            txns.sort((a,b) => new Date(b.date) - new Date(a.date));
-            
+            txns.sort((a, b) => new Date(b.date) - new Date(a.date));
+
             body.innerHTML = '';
             txns.forEach(t => {
                 if (t.type === 'FLIGHT') return; // Hide standard flight bets from this ledger
-                
+
                 const tr = document.createElement('tr');
                 let actionsHTML = '';
                 const currentId = t.txnId || t.id || '';
-                
+
                 if (t.status === 'PENDING') {
                     actionsHTML = `
                         <button class="btn-action approve" onclick="processTxn('${currentId}', 'APPROVE')">Approve</button>
@@ -807,14 +917,14 @@
                 } else {
                     actionsHTML = `<span style="font-size:11px; opacity:0.5; font-weight:700">COMPLETED</span>`;
                 }
-                
+
                 tr.innerHTML = `
                     <td>${new Date(t.date).toLocaleDateString()}</td>
                     <td><strong>${currentId}</strong></td>
                     <td>${t.type}</td>
                     <td>${t.email}</td>
                     <td>${t.desc || t.upi || ''}</td>
-                    <td style="color:${t.type==='DEPOSIT'?'var(--accent-green)':'var(--accent-red)'}">₹${t.amount.toFixed(2)}</td>
+                    <td style="color:${t.type === 'DEPOSIT' ? 'var(--accent-green)' : 'var(--accent-red)'}">₹${t.amount.toFixed(2)}</td>
                     <td>
                         <span class="badge-status ${t.status === 'PENDING' ? 'progress' : (t.status === 'SUCCESS' || t.status === 'APPROVED' ? 'resolved' : 'reject')}">
                             ${t.status}
@@ -828,46 +938,60 @@
             });
         }
 
-        function processTxn(txnId, action) {
+        async function processTxn(txnId, action) {
             const txns = JSON.parse(localStorage.getItem('aviator_txns')) || [];
             const dbUsers = JSON.parse(localStorage.getItem('aviator_db_users')) || [];
-            
+
             const txnIdx = txns.findIndex(t => (t.txnId || t.id || '') === txnId);
             if (txnIdx === -1) return;
-            
+
             const txn = txns[txnIdx];
-            
+
             // Confirmation prompt
             const actionVerb = action === 'APPROVE' ? 'APPROVE' : 'REJECT';
             const confirmMsg = `Are you sure you want to ${actionVerb} this ${txn.type.toLowerCase()} of ₹${txn.amount.toFixed(2)} for pilot ${txn.email}?`;
-            if (!confirm(confirmMsg)) {
-                return;
-            }
-            
-            const userIdx = dbUsers.findIndex(u => 
+            if (!confirm(confirmMsg)) return;
+
+            const userIdx = dbUsers.findIndex(u =>
                 (u.email && u.email.toLowerCase() === txn.email.toLowerCase()) ||
                 (u.phone && u.phone.trim() === txn.email.trim())
             );
-            
+
             if (userIdx === -1) {
                 showToast("Action Failed", "Associated player account not found.", "error");
                 return;
             }
-            
+
             if (action === 'APPROVE') {
                 txn.status = 'SUCCESS';
                 if (txn.type === 'DEPOSIT') {
                     dbUsers[userIdx].balance = parseFloat((dbUsers[userIdx].balance + txn.amount).toFixed(2));
                 }
-                showToast("Transaction Approved", "Wallet balance credited.", "success");
+                // --- Sync balance to Firestore ---
+                try {
+                    await db.collection('users').doc(dbUsers[userIdx].email).update({
+                        balance: dbUsers[userIdx].balance
+                    });
+                } catch (fe) { console.error('Firebase balance sync error:', fe); }
+
+                // --- Save txn to Firestore ---
+                try {
+                    await db.collection('transactions').doc(txnId).set({ ...txn, status: 'SUCCESS' });
+                } catch (fe) { console.error('Firebase txn sync error:', fe); }
+
+                showToast("Transaction Approved", "Wallet balance credited & synced to Firebase.", "success");
             } else {
                 txn.status = 'REJECTED';
+                // --- Update txn status in Firestore ---
+                try {
+                    await db.collection('transactions').doc(txnId).set({ ...txn, status: 'REJECTED' });
+                } catch (fe) { console.error('Firebase txn reject error:', fe); }
                 showToast("Transaction Rejected", "No balances were altered.", "warning");
             }
-            
+
             localStorage.setItem('aviator_txns', JSON.stringify(txns));
             localStorage.setItem('aviator_db_users', JSON.stringify(dbUsers));
-            
+
             renderAllData();
         }
 
@@ -875,15 +999,15 @@
         function renderTickets() {
             const body = document.getElementById('tickets-table-body');
             const tickets = JSON.parse(localStorage.getItem('aviator_tickets')) || [];
-            
+
             // Sort by date desc
-            tickets.sort((a,b) => new Date(b.date) - new Date(a.date));
-            
+            tickets.sort((a, b) => new Date(b.date) - new Date(a.date));
+
             body.innerHTML = '';
             tickets.forEach(t => {
                 const tr = document.createElement('tr');
                 const currentTktId = t.ticketId || t.id || '';
-                
+
                 let actionHTML = '';
                 if (t.status !== 'RESOLVED') {
                     actionHTML = `
@@ -895,7 +1019,7 @@
                 } else {
                     actionHTML = `<span style="font-size:11px; opacity:0.5; font-weight:700">RESOLVED</span>`;
                 }
-                
+
                 tr.innerHTML = `
                     <td>${new Date(t.date).toLocaleDateString()}</td>
                     <td><strong>${currentTktId}</strong></td>
@@ -914,21 +1038,26 @@
             });
         }
 
-        function replyTicket(e, ticketId) {
+        async function replyTicket(e, ticketId) {
             e.preventDefault();
             const input = e.target.querySelector('input');
             const replyText = input.value.trim();
             if (!replyText) return;
-            
+
             const tickets = JSON.parse(localStorage.getItem('aviator_tickets')) || [];
             const idx = tickets.findIndex(t => (t.ticketId || t.id || '') === ticketId);
-            
+
             if (idx !== -1) {
                 tickets[idx].reply = replyText;
                 tickets[idx].status = 'RESOLVED';
                 localStorage.setItem('aviator_tickets', JSON.stringify(tickets));
-                
-                showToast("Ticket Resolved", "Reply synchronized to pilot support desk.", "success");
+
+                // --- Sync reply to Firestore ---
+                try {
+                    await db.collection('tickets').doc(ticketId).set(tickets[idx]);
+                } catch (fe) { console.error('Firebase ticket sync error:', fe); }
+
+                showToast("Ticket Resolved", "Reply synchronized to Firebase & pilot support desk.", "success");
                 renderAllData();
             }
         }
@@ -986,7 +1115,7 @@
                 showToast("Error", "Please type a message first.", "error");
                 return;
             }
-            
+
             // Format: MESSAGE|TIMESTAMP to ensure every new message triggers a change event
             localStorage.setItem('aviator_global_announcement', msg + '|' + Date.now());
             document.getElementById('broadcast-msg').value = '';
@@ -1003,7 +1132,7 @@
                 const autoBtn = document.getElementById('rules-btn-auto');
                 const manualBtn = document.getElementById('rules-btn-manual');
                 const manualWrapper = document.getElementById('manual-settings-wrapper');
-                
+
                 hiddenInput.value = mode;
                 if (mode === 'MANUAL') {
                     if (autoBtn) autoBtn.className = "status-option-btn";
@@ -1070,9 +1199,9 @@
         function promptOverrideRound(targetRoundId) {
             const val = prompt(`Enter a manual crash multiplier for Round ID ${targetRoundId}\n(or leave blank to clear the override):`);
             if (val === null) return; // Cancelled
-            
+
             const overrides = JSON.parse(localStorage.getItem('aviator_round_overrides') || '{}');
-            
+
             if (val.trim() === '') {
                 delete overrides[targetRoundId];
                 showToast("Override Cleared", `Round ${targetRoundId} will use the automatic random algorithm.`, "info");
@@ -1086,7 +1215,7 @@
                     return;
                 }
             }
-            
+
             localStorage.setItem('aviator_round_overrides', JSON.stringify(overrides));
             localStorage.setItem('aviator_sync_trigger', Date.now()); // Force game app to sync
         }
@@ -1096,7 +1225,7 @@
             const users = JSON.parse(localStorage.getItem('aviator_db_users')) || [];
             const activityLogs = JSON.parse(localStorage.getItem('aviator_activity_logs')) || [];
             const txns = JSON.parse(localStorage.getItem('aviator_txns')) || [];
-            
+
             // Section 1: Users
             csvContent += "=== PILOT REGISTERS ===\n";
             csvContent += "Customer ID,Username,Email,Phone,Register Date,Balance,Active Hours,Status,Total Rounds\n";
@@ -1146,7 +1275,7 @@
 
         // Initialize lists
         renderAllData();
-        
+
         // Restore last active dashboard tab on refresh
         const lastTab = localStorage.getItem('aviator_admin_active_tab');
         if (lastTab && document.getElementById(`panel-${lastTab}`)) {
@@ -1161,4 +1290,5 @@
         });
     </script>
 </body>
+
 </html>

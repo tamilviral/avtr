@@ -344,7 +344,32 @@
                             <button type="button" class="submit-btn" style="background: var(--accent-red); color: #fff; box-shadow: 0 4px 12px var(--accent-red-glow); margin-top: 4px;" onclick="savePilotStoredPaymentInfo()">
                                 Save Payout Accounts
                             </button>
-                            
+
+                            <!-- Change Password Section -->
+                            <div style="margin-top: 16px; border-top: 1px solid var(--border-color); padding-top: 14px;">
+                                <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; letter-spacing: 0.5px;">Change Password</div>
+                                <div style="display: flex; flex-direction: column; gap: 10px;">
+                                    <div class="input-group">
+                                        <label>Current Password</label>
+                                        <div style="position: relative;">
+                                            <input type="password" class="input-field" id="chgCurrentPass" placeholder="Enter current password" style="padding-right: 40px;">
+                                        </div>
+                                    </div>
+                                    <div class="input-group">
+                                        <label>New Password</label>
+                                        <input type="password" class="input-field" id="chgNewPass" placeholder="Min 6 characters">
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Confirm New Password</label>
+                                        <input type="password" class="input-field" id="chgConfirmPass" placeholder="Re-enter new password">
+                                    </div>
+                                    <div id="chgPassAlert" style="display:none; font-size:11px; padding:8px 12px; border-radius:8px;"></div>
+                                    <button type="button" class="submit-btn" style="background: #1a2a3a; color: #00b0ff; border: 1px solid #00b0ff; box-shadow: 0 0 10px rgba(0,176,255,0.15); margin-top:2px; height:38px; font-size:12px;" onclick="changeUserPassword()">
+                                        Update Password
+                                    </button>
+                                </div>
+                            </div>
+
                             <div style="margin-top: 10px;">
                                 <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px;">Pilot Stats Dashboard</div>
                                 <div class="stats-grid">

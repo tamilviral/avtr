@@ -112,6 +112,18 @@
 
     function syncUserBalance() {
         if (!currentUser) return;
+
+        // --- Check if admin has force-deleted this account ---
+        const forceLogout = localStorage.getItem('aviator_force_logout');
+        if (forceLogout && forceLogout.toLowerCase() === currentUser.email.toLowerCase()) {
+            localStorage.removeItem('aviator_force_logout');
+            localStorage.removeItem('aviator_session');
+            localStorage.removeItem('aviator_user');
+            showToast("Account Removed", "Your pilot account has been terminated by Ground Control.", "error");
+            setTimeout(() => { window.location.href = "login.html"; }, 2000);
+            return;
+        }
+
         const users = JSON.parse(localStorage.getItem('aviator_db_users'));
         const fresh = users.find(u => u.email === currentUser.email);
         if (fresh) {
@@ -124,6 +136,12 @@
             currentUser.balance = fresh.balance;
             document.getElementById('playerBalance').textContent = fresh.balance.toFixed(2);
             document.getElementById('withdrawAvailableBal').textContent = fresh.balance.toFixed(2);
+        } else {
+            // User no longer exists in local DB — also force logout
+            localStorage.removeItem('aviator_session');
+            localStorage.removeItem('aviator_user');
+            showToast("Session Ended", "Your pilot account no longer exists. Redirecting...", "error");
+            setTimeout(() => { window.location.href = "login.html"; }, 2000);
         }
     }
 
@@ -152,7 +170,7 @@
         
         // Update user state
         currentUser.bonusClaimed = true;
-        updateDatabaseUserBalance(50.00); // Credit 50 INR
+        updateDatabaseUserBalance(200.00); // Credit 200 INR
         
         // Save the flag to DB
         const users = JSON.parse(localStorage.getItem('aviator_db_users'));
@@ -162,7 +180,7 @@
             localStorage.setItem('aviator_db_users', JSON.stringify(users));
         }
         
-        showToast("Bonus Claimed!", "Your one-time welcome bonus of ₹50.00 has been credited to your pilot wallet.", "success");
+        showToast("Bonus Claimed!", "Your one-time welcome bonus of ₹200.00 has been credited to your pilot wallet.", "success");
     };
 
     // -------------------------------------------------------------
@@ -1486,6 +1504,63 @@
         showToast("PROFILE UPDATED", "Payout Account details registered successfully.", "success");
     };
 
+    window.changeUserPassword = async function() {
+        const currentPass = document.getElementById('chgCurrentPass').value;
+        const newPass     = document.getElementById('chgNewPass').value;
+        const confirmPass = document.getElementById('chgConfirmPass').value;
+        const alertEl     = document.getElementById('chgPassAlert');
+
+        const showAlert = (msg, ok) => {
+            alertEl.textContent = msg;
+            alertEl.style.display = 'block';
+            alertEl.style.background  = ok ? 'rgba(34,197,94,0.12)'  : 'rgba(229,9,20,0.12)';
+            alertEl.style.border      = ok ? '1px solid rgba(34,197,94,0.3)' : '1px solid rgba(229,9,20,0.3)';
+            alertEl.style.color       = ok ? 'var(--accent-green)'   : '#ff5252';
+        };
+
+        // Validate
+        if (!currentPass || !newPass || !confirmPass) {
+            showAlert('All three fields are required.', false); return;
+        }
+        if (currentPass !== currentUser.password) {
+            showAlert('Current password is incorrect.', false); return;
+        }
+        if (newPass.length < 6) {
+            showAlert('New password must be at least 6 characters.', false); return;
+        }
+        if (newPass !== confirmPass) {
+            showAlert('New passwords do not match.', false); return;
+        }
+        if (newPass === currentPass) {
+            showAlert('New password must be different from current.', false); return;
+        }
+
+        // Update localStorage
+        currentUser.password = newPass;
+        localStorage.setItem('aviator_user', JSON.stringify(currentUser));
+
+        const dbUsers = JSON.parse(localStorage.getItem('aviator_db_users')) || [];
+        const idx = dbUsers.findIndex(u => u.email.toLowerCase() === currentUser.email.toLowerCase());
+        if (idx !== -1) {
+            dbUsers[idx].password = newPass;
+            localStorage.setItem('aviator_db_users', JSON.stringify(dbUsers));
+        }
+
+        // Sync to Firebase
+        try {
+            if (typeof db !== 'undefined') {
+                await db.collection('users').doc(currentUser.email).update({ password: newPass });
+            }
+        } catch(fe) { console.error('Firebase password update error:', fe); }
+
+        // Clear fields & show success
+        document.getElementById('chgCurrentPass').value = '';
+        document.getElementById('chgNewPass').value     = '';
+        document.getElementById('chgConfirmPass').value = '';
+        showAlert('✅ Password updated successfully!', true);
+        showToast('Password Changed', 'Your access password has been updated.', 'success');
+    };
+
     window.updatePhoneVerifyBadgeState = function() {
         const badge = document.getElementById('phoneVerifyBadge');
         const btn = document.getElementById('btnVerifyPhone');
@@ -1734,7 +1809,7 @@
         // Automatic Welcome Bonus Pop-up
         if (currentUser && !currentUser.bonusClaimed) {
             setTimeout(() => {
-                showToast("Welcome Bonus", "Don't forget to claim your one-time ₹50 cash offer at the top right of the screen!", "success");
+                showToast("Welcome Bonus", "Don't forget to claim your one-time ₹200 cash offer at the top right of the screen!", "success");
             }, 3000);
         }
     };
