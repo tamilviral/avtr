@@ -530,6 +530,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="admin-config.js"></script>
     <script src="firebase-config.js"></script>
 
     <script>
@@ -540,8 +541,9 @@
             window.location.href = "login.html";
         } else {
             activeUser = JSON.parse(savedSession);
-            if (activeUser.email.toLowerCase() !== 'admin') {
-                alert("ACCESS DENIED: Ground Control terminal authorization is restricted to Admin credentials only.");
+            const _adm = window.__ADMIN_CFG__ || { email: 'admin@admin' };
+            if (activeUser.email.toLowerCase() !== _adm.email.toLowerCase()) {
+                alert("ACCESS DENIED: Ground Control terminal authorization is restricted to authorized admin credentials only.");
                 window.location.href = "index.html";
             }
         }
