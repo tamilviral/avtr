@@ -35,6 +35,7 @@ body {
     background-color: var(--bg-primary);
     color: var(--text-white);
     overflow: hidden;
+    overscroll-behavior-y: none;
     height: 100vh;
     height: 100dvh;
     user-select: none;

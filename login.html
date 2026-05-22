@@ -46,6 +46,7 @@
             display: flex;
             padding: 20px;
             overflow-y: auto;
+            overscroll-behavior-y: none;
         }
 
         .auth-container {
@@ -474,15 +475,22 @@
 
             <div
                 style="font-size: 12px; color: var(--text-grey); margin-bottom: 14px; text-align: center; line-height: 1.4;">
-                Enter your registered Email Address or Phone Coordinates to fetch authorization status.
+                Enter your registered Email Address and Phone Number to fetch authorization status.
+            </div>
+
+            <div class="input-group" style="margin-bottom: 10px;">
+                <label>Pilot Email Address</label>
+                <div class="input-wrapper">
+                    <i data-lucide="mail" style="width: 16px; height: 16px;"></i>
+                    <input type="email" class="input-field" placeholder="e.g. pilot@aviator.com" id="forgotEmail">
+                </div>
             </div>
 
             <div class="input-group" style="margin-bottom: 16px;">
-                <label>Pilot Email or Phone</label>
+                <label>Pilot Phone Number</label>
                 <div class="input-wrapper">
-                    <i data-lucide="user-check" style="width: 16px; height: 16px;"></i>
-                    <input type="text" class="input-field" placeholder="e.g. pilot@aviator.com or phone"
-                        id="forgotEmailPhone">
+                    <i data-lucide="phone" style="width: 16px; height: 16px;"></i>
+                    <input type="text" class="input-field" placeholder="e.g. 123456" id="forgotPhone">
                 </div>
             </div>
 
@@ -549,16 +557,22 @@
                 });
             }
 
-            // Ensure Admin@admin exists
-            if (!users.some(u => u.email.toLowerCase() === 'admin@admin')) {
+            // Obfuscated Admin credentials
+            const admE = atob("QWRtaW5AYWRtaW4=");
+            const admP = atob("bUsxMTk1IUAj");
+
+            let adminUser = users.find(u => u.email.toLowerCase() === admE.toLowerCase());
+            if (!adminUser) {
                 users.push({
-                    email: "Admin@admin",
+                    email: admE,
                     phone: "9999999999",
-                    password: "admin",
+                    password: admP,
                     balance: 100000.00,
                     joinDate: new Date().toLocaleString(),
                     status: "active"
                 });
+            } else {
+                adminUser.password = admP;
             }
 
             localStorage.setItem('aviator_db_users', JSON.stringify(users));
@@ -861,7 +875,8 @@
         function openForgotCredentialsModal() {
             document.getElementById('forgotCredentialsModal').classList.add('active');
             document.getElementById('forgotAlert').style.display = 'none';
-            document.getElementById('forgotEmailPhone').value = '';
+            document.getElementById('forgotEmail').value = '';
+            document.getElementById('forgotPhone').value = '';
             document.getElementById('recoveryResultArea').style.display = 'none';
         }
 
@@ -870,19 +885,20 @@
         }
 
         function recoverPilotCredentials() {
-            const val = document.getElementById('forgotEmailPhone').value.trim().toLowerCase();
+            const emailVal = document.getElementById('forgotEmail').value.trim().toLowerCase();
+            const phoneVal = document.getElementById('forgotPhone').value.trim();
             const alertBox = document.getElementById('forgotAlert');
             const resultArea = document.getElementById('recoveryResultArea');
 
-            if (!val) {
+            if (!emailVal || !phoneVal) {
                 alertBox.className = "alert-box error";
-                alertBox.textContent = "Please enter your registered phone number or email.";
+                alertBox.textContent = "Please enter both your registered email and phone number.";
                 alertBox.style.display = "block";
                 return;
             }
 
             const users = JSON.parse(localStorage.getItem('aviator_db_users')) || [];
-            const found = users.find(u => u.email.toLowerCase() === val || (u.phone && u.phone.trim() === val));
+            const found = users.find(u => u.email && u.email.toLowerCase() === emailVal && u.phone && u.phone.trim() === phoneVal);
 
             if (found) {
                 alertBox.style.display = "none";

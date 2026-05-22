@@ -11,6 +11,7 @@
             background: #090a0f;
             padding: 20px;
             overflow-y: auto;
+            overscroll-behavior-y: none;
             height: 100vh;
             height: 100dvh;
         }
@@ -541,7 +542,7 @@
             window.location.href = "login.html";
         } else {
             activeUser = JSON.parse(savedSession);
-            const _adm = window.__ADMIN_CFG__ || { email: 'admin@admin' };
+            const _adm = window.__ADMIN_CFG__ || { email: atob('QWRtaW5AYWRtaW4=') };
             if (activeUser.email.toLowerCase() !== _adm.email.toLowerCase()) {
                 alert("ACCESS DENIED: Ground Control terminal authorization is restricted to authorized admin credentials only.");
                 window.location.href = "index.html";
