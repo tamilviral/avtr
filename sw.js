@@ -3,7 +3,7 @@
    Strategy: Stale-While-Revalidate Caching Model
    ========================================================================== */
 
-const CACHE_NAME = 'aviator-cockpit-v1';
+const CACHE_NAME = 'aviator-cockpit-v4'; // Bumped: forces mobile cache refresh
 const STATIC_ASSETS = [
     './',
     './index.html',
@@ -13,7 +13,8 @@ const STATIC_ASSETS = [
     './gateway.html',
     './tickets.html',
     './manifest.json',
-    './payout-qr.png'
+    './payout-qr.png',
+    './firebase-config.js'
 ];
 
 // Installation: Cache initial offline resources
@@ -49,6 +50,20 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
     // Only cache GET requests
     if (event.request.method !== 'GET') return;
+
+    const url = event.request.url;
+
+    // NEVER intercept Firebase / Google API requests — always fetch live
+    if (
+        url.includes('firebaseio.com') ||
+        url.includes('firestore.googleapis.com') ||
+        url.includes('firebase.googleapis.com') ||
+        url.includes('gstatic.com/firebasejs') ||
+        url.includes('googleapis.com')
+    ) {
+        event.respondWith(fetch(event.request));
+        return;
+    }
 
     event.respondWith(
         caches.open(CACHE_NAME).then((cache) => {

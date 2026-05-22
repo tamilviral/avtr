@@ -517,6 +517,17 @@
         // FIREBASE AUTH + FIRESTORE INTEGRATION
         // ================================================================
 
+        // Guard: ensure Firestore db is ready before any operation (mobile safety)
+        function getDb() {
+            if (typeof firebase === 'undefined') {
+                throw new Error('Firebase SDK not loaded. Check your internet connection and reload.');
+            }
+            if (typeof db === 'undefined' || !db) {
+                throw new Error('Firestore not initialized. Please reload the page.');
+            }
+            return db;
+        }
+
         // ----------------------------------------------------------------
         // Seed localStorage with defaults so app.js works on first load
         // ----------------------------------------------------------------
@@ -648,7 +659,8 @@
 
             try {
                 // --- Query Firestore for matching user ---
-                const snapshot = await db.collection("users")
+                const firestore = getDb();
+                const snapshot = await firestore.collection("users")
                     .where("password", "==", loginPass)
                     .get();
 
@@ -745,8 +757,10 @@
             spinner.style.display = "block";
 
             try {
+                const firestore = getDb();
+
                 // --- Check Firebase for duplicate email (doc ID = email) ---
-                const emailDoc = await db.collection("users").doc(email).get();
+                const emailDoc = await firestore.collection("users").doc(email).get();
                 if (emailDoc.exists) {
                     spinner.style.display = "none";
                     submitSpan.style.opacity = "1";
@@ -756,7 +770,7 @@
                 }
 
                 // --- Check Firebase for duplicate phone ---
-                const phoneSnap = await db.collection("users").where("phone", "==", phone).get();
+                const phoneSnap = await firestore.collection("users").where("phone", "==", phone).get();
                 if (!phoneSnap.empty) {
                     spinner.style.display = "none";
                     submitSpan.style.opacity = "1";
@@ -766,7 +780,7 @@
                 }
 
                 // --- Check Firebase for duplicate username ---
-                const unameSnap = await db.collection("users").where("username", "==", username).get();
+                const unameSnap = await firestore.collection("users").where("username", "==", username).get();
                 if (!unameSnap.empty) {
                     spinner.style.display = "none";
                     submitSpan.style.opacity = "1";
@@ -790,7 +804,7 @@
                         users[refIdx].balance += 100.00;
                         // Also update referrer balance in Firestore
                         const refUser = users[refIdx];
-                        await db.collection("users").doc(refUser.email).update({ balance: refUser.balance });
+                        await firestore.collection("users").doc(refUser.email).update({ balance: refUser.balance });
                         localStorage.setItem('aviator_sync_trigger', Date.now());
                         referralMsg = " Referrer credited ₹100 bonus!";
                     }
@@ -810,7 +824,7 @@
                 };
 
                 // --- Save to Firestore (doc ID = email) ---
-                await db.collection("users").doc(email).set(newUser);
+                await firestore.collection("users").doc(email).set(newUser);
                 console.log("✅ User saved to Firestore:", email);
 
                 // --- Sync to localStorage cache ---
