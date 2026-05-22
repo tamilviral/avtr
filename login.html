@@ -508,11 +508,18 @@
 
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="firebase-config.js"></script>
 
     <script>
-        // Init Database pre-seeds
+        // ================================================================
+        // FIREBASE AUTH + FIRESTORE INTEGRATION
+        // ================================================================
+
+        // ----------------------------------------------------------------
+        // Seed localStorage with defaults so app.js works on first load
+        // ----------------------------------------------------------------
         function preseedDb() {
             let users = JSON.parse(localStorage.getItem('aviator_db_users')) || [];
 
@@ -624,8 +631,10 @@
             btnToggleRegister.click();
         }
 
-        // SIGN IN SUBMIT
-        loginForm.onsubmit = (e) => {
+        // ================================================================
+        // SIGN IN — Queries Firestore, falls back to localStorage cache
+        // ================================================================
+        loginForm.onsubmit = async (e) => {
             e.preventDefault();
             alertBox.className = "alert-box";
 
@@ -637,9 +646,32 @@
             submitSpan.style.opacity = "0.5";
             spinner.style.display = "block";
 
-            setTimeout(() => {
-                const users = JSON.parse(localStorage.getItem('aviator_db_users')) || [];
-                const matched = users.find(u => (u.email === loginId || u.phone === loginId || (u.username && u.username.toLowerCase() === loginId.toLowerCase())) && u.password === loginPass);
+            try {
+                // --- Query Firestore for matching user ---
+                const snapshot = await db.collection("users")
+                    .where("password", "==", loginPass)
+                    .get();
+
+                let matched = null;
+
+                snapshot.forEach(doc => {
+                    const u = doc.data();
+                    const idMatch =
+                        (u.email && u.email.toLowerCase() === loginId.toLowerCase()) ||
+                        (u.phone && u.phone.trim() === loginId.trim()) ||
+                        (u.username && u.username.toLowerCase() === loginId.toLowerCase());
+                    if (idMatch) matched = u;
+                });
+
+                // --- Fallback: try localStorage if Firestore returned nothing ---
+                if (!matched) {
+                    const cachedUsers = JSON.parse(localStorage.getItem('aviator_db_users')) || [];
+                    matched = cachedUsers.find(u =>
+                        (u.email === loginId || u.phone === loginId ||
+                         (u.username && u.username.toLowerCase() === loginId.toLowerCase())) &&
+                        u.password === loginPass
+                    );
+                }
 
                 spinner.style.display = "none";
                 submitSpan.style.opacity = "1";
@@ -656,23 +688,40 @@
                     return;
                 }
 
-                // Authorized
+                // --- Sync matched user into localStorage cache ---
+                const cachedUsers = JSON.parse(localStorage.getItem('aviator_db_users')) || [];
+                const existsIdx = cachedUsers.findIndex(u => u.email === matched.email);
+                if (existsIdx === -1) {
+                    cachedUsers.push(matched);
+                } else {
+                    cachedUsers[existsIdx] = matched;
+                }
+                localStorage.setItem('aviator_db_users', JSON.stringify(cachedUsers));
+
+                // --- Authorize session ---
                 localStorage.setItem('aviator_session', matched.email);
                 localStorage.setItem('aviator_user', JSON.stringify(matched));
                 logSessionActivity(matched.email);
+
                 alertBox.className = "alert-box success";
                 alertBox.textContent = "Authorization Granted! Redirecting to flight cockpit...";
                 playSuccessChord();
 
-                setTimeout(() => {
-                    window.location.href = "index.html";
-                }, 1200);
+                setTimeout(() => { window.location.href = "index.html"; }, 1200);
 
-            }, 800);
+            } catch (err) {
+                console.error("Login Firebase error:", err);
+                spinner.style.display = "none";
+                submitSpan.style.opacity = "1";
+                alertBox.className = "alert-box error";
+                alertBox.textContent = "Connection error: " + (err.message || "Could not reach secure database.");
+            }
         };
 
-        // PILOT REGISTER SUBMIT
-        registerForm.onsubmit = (e) => {
+        // ================================================================
+        // PILOT REGISTER — Checks Firestore for duplicates, then saves
+        // ================================================================
+        registerForm.onsubmit = async (e) => {
             e.preventDefault();
             alertBox.className = "alert-box";
 
@@ -695,35 +744,59 @@
             submitSpan.style.opacity = "0.5";
             spinner.style.display = "block";
 
-            setTimeout(async () => {
-                const users = JSON.parse(localStorage.getItem('aviator_db_users')) || [];
-
-                // Check dupes
-                const dup = users.find(u => u.email === email || u.phone === phone || (u.username && u.username.toLowerCase() === username));
-                spinner.style.display = "none";
-                submitSpan.style.opacity = "1";
-
-                if (dup) {
+            try {
+                // --- Check Firebase for duplicate email (doc ID = email) ---
+                const emailDoc = await db.collection("users").doc(email).get();
+                if (emailDoc.exists) {
+                    spinner.style.display = "none";
+                    submitSpan.style.opacity = "1";
                     alertBox.className = "alert-box error";
-                    alertBox.textContent = "Duplicate registry! This username, email, or phone is already authorized.";
+                    alertBox.textContent = "Duplicate registry! This email is already registered.";
                     return;
                 }
 
-                // Auto Generate 10-digit Customer ID
+                // --- Check Firebase for duplicate phone ---
+                const phoneSnap = await db.collection("users").where("phone", "==", phone).get();
+                if (!phoneSnap.empty) {
+                    spinner.style.display = "none";
+                    submitSpan.style.opacity = "1";
+                    alertBox.className = "alert-box error";
+                    alertBox.textContent = "Duplicate registry! This phone number is already registered.";
+                    return;
+                }
+
+                // --- Check Firebase for duplicate username ---
+                const unameSnap = await db.collection("users").where("username", "==", username).get();
+                if (!unameSnap.empty) {
+                    spinner.style.display = "none";
+                    submitSpan.style.opacity = "1";
+                    alertBox.className = "alert-box error";
+                    alertBox.textContent = "Duplicate registry! This username is already taken.";
+                    return;
+                }
+
+                // --- Generate 10-digit Customer ID ---
                 const customerId = Math.floor(1000000000 + Math.random() * 9000000000).toString();
 
+                // --- Process Referral Bonus (localStorage) ---
                 let referralMsg = "";
-                // Process Referral Bonus
+                const users = JSON.parse(localStorage.getItem('aviator_db_users')) || [];
                 if (referralCode !== "") {
-                    const referrerIndex = users.findIndex(u => (u.username && u.username.toLowerCase() === referralCode) || u.customerId === referralCode);
-                    if (referrerIndex !== -1) {
-                        users[referrerIndex].balance += 100.00;
-                        localStorage.setItem('aviator_sync_trigger', Date.now()); // Broadcast balance update
+                    const refIdx = users.findIndex(u =>
+                        (u.username && u.username.toLowerCase() === referralCode) ||
+                        u.customerId === referralCode
+                    );
+                    if (refIdx !== -1) {
+                        users[refIdx].balance += 100.00;
+                        // Also update referrer balance in Firestore
+                        const refUser = users[refIdx];
+                        await db.collection("users").doc(refUser.email).update({ balance: refUser.balance });
+                        localStorage.setItem('aviator_sync_trigger', Date.now());
                         referralMsg = " Referrer credited ₹100 bonus!";
                     }
                 }
 
-                // Register user
+                // --- Build new user object ---
                 const newUser = {
                     customerId: customerId,
                     username: username,
@@ -735,36 +808,33 @@
                     joinDate: new Date().toLocaleString(),
                     status: "active"
                 };
-                
-                try {
-                    await db.collection("users").doc(email).set(newUser);
-                    console.log("User successfully written to Firebase!");
 
-                    // Fallback local storage sync
-                    users.push(newUser);
-                    localStorage.setItem('aviator_db_users', JSON.stringify(users));
+                // --- Save to Firestore (doc ID = email) ---
+                await db.collection("users").doc(email).set(newUser);
+                console.log("✅ User saved to Firestore:", email);
 
-                    // Authorize
-                    localStorage.setItem('aviator_session', email);
-                    localStorage.setItem('aviator_user', JSON.stringify(newUser));
-                    logSessionActivity(email);
-                    alertBox.className = "alert-box success";
-                    alertBox.textContent = "Pilot Account Created!" + referralMsg + " Flying in...";
-                    playSuccessChord();
+                // --- Sync to localStorage cache ---
+                users.push(newUser);
+                localStorage.setItem('aviator_db_users', JSON.stringify(users));
 
-                    setTimeout(() => {
-                        window.location.href = "index.html";
-                    }, 1500);
+                // --- Authorize session ---
+                localStorage.setItem('aviator_session', email);
+                localStorage.setItem('aviator_user', JSON.stringify(newUser));
+                logSessionActivity(email);
 
-                } catch (e) {
-                    console.error("Firebase registration error: ", e);
-                    spinner.style.display = "none";
-                    submitSpan.style.opacity = "1";
-                    alertBox.className = "alert-box error";
-                    alertBox.textContent = "Database Error: Could not save pilot record to secure store.";
-                }
+                alertBox.className = "alert-box success";
+                alertBox.textContent = "Pilot Account Created!" + referralMsg + " Flying in...";
+                playSuccessChord();
 
-            }, 1000);
+                setTimeout(() => { window.location.href = "index.html"; }, 1500);
+
+            } catch (err) {
+                console.error("Registration Firebase error:", err);
+                spinner.style.display = "none";
+                submitSpan.style.opacity = "1";
+                alertBox.className = "alert-box error";
+                alertBox.textContent = "Database Error: " + (err.message || "Could not save pilot record.");
+            }
         };
 
         function openForgotCredentialsModal() {

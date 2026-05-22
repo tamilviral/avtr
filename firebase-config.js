@@ -1,11 +1,12 @@
 const firebaseConfig = {
-    apiKey: "AIzaSyAamiz5i_njeSZ9LaAXedxtMMlDVm2Mw0w",
-  authDomain: "avtr-7a851.firebaseapp.com",
-  databaseURL: "https://avtr-7a851-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "avtr-7a851",
-  storageBucket: "avtr-7a851.firebasestorage.app",
-  messagingSenderId: "216465267194",
-  appId: "1:216465267194:web:15b44acd48242b71bb6c43"
+    apiKey: "AIzaSyDoB1TQlsd9EcOM0xx-LyyPDSCBbxDmMfc",
+    authDomain: "avtr-899ee.firebaseapp.com",
+    databaseURL: "https://avtr-899ee-default-rtdb.firebaseio.com",
+    projectId: "avtr-899ee",
+    storageBucket: "avtr-899ee.firebasestorage.app",
+    messagingSenderId: "590268537916",
+    appId: "1:590268537916:web:1b10ec1e1f5da3fe467739"
+};
 
 // Initialize Firebase
 if (!firebase.apps.length) {
